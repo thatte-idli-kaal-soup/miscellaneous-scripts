@@ -1,33 +1,20 @@
 #!/usr/bin/env python3
 
+import os
 from os.path import abspath, dirname, join
 
-import os
-
 import dash
-# from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
-import pandas
 import flask
+import pandas
 
 HERE = dirname(abspath(__file__))
 STATS_FILE = join(HERE, '..', 'data', 'stats.csv')
 TOURNAMENT = 'BUO 2017'
 TEAM = 'TIKS'
 markers = ['circle', 'square', 'cross', 'diamond']
-
-
-server = flask.Flask('app')
-server.secret_key = os.environ.get('secret_key', 'secret')
-
-app = dash.Dash('app', server=server)
-app.title = '{} Statistics'.format(TOURNAMENT)
-
-app.scripts.config.serve_locally = False
-dcc._js_dist[0]['external_url'] = (
-    'https://cdn.plot.ly/plotly-basic-latest.min.js'
-)
 
 
 def get_match_points(tournament, opponent):
@@ -56,7 +43,7 @@ def score_line_figure():
             'x': ours,
             'y': theirs,
             'name': opponent,
-            'line': {'dash': 'dashdot',},
+            'line': {'dash': 'dashdot', },
             'marker': {'symbol': markers[i % 4], 'size': 8},
             'mode': 'lines+markers',
         })
@@ -90,14 +77,41 @@ def score_line_figure():
 
 data = pandas.read_csv(STATS_FILE)
 
+graph_types = {
+    'Score Line': score_line_figure,
+}
+
+server = flask.Flask('app')
+server.secret_key = os.environ.get('secret_key', 'secret')
+
+app = dash.Dash('app', server=server)
+app.title = '{} Statistics'.format(TOURNAMENT)
+
+app.scripts.config.serve_locally = False
+dcc._js_dist[0]['external_url'] = (
+    'https://cdn.plot.ly/plotly-basic-latest.min.js'
+)
+
 app.layout = html.Div([
     html.H1('{} - {}'.format(TOURNAMENT, TEAM)),
-    dcc.Graph(id='my-graph', figure=score_line_figure())
+    dcc.Dropdown(
+        id='graph-type-dropdown',
+        options=[{'label': key, 'value': key} for key in graph_types.keys()],
+        value='Score Line',
+    ),
+
+    dcc.Graph(id='my-graph')
 ], className="container")
 
 app.css.append_css({
     'external_url': "https://codepen.io/chriddyp/pen/bWLwgP.css"
 })
+
+
+@app.callback(Output('my-graph', 'figure'),
+              [Input('graph-type-dropdown', 'value'), ])
+def update_graph(graph_type):
+    return graph_types[graph_type]()
 
 
 if __name__ == '__main__':
