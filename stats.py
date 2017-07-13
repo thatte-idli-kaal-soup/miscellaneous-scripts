@@ -7,6 +7,7 @@ import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly.graph_objs as go
 import flask
 import pandas
 
@@ -51,7 +52,6 @@ def score_line_figure():
         'x': list(range(16)),
         'y': list(range(16)),
         'name': 'Scores level',
-        'type': 'lines',
         'mode': 'lines'
     })
 
@@ -75,10 +75,68 @@ def score_line_figure():
     return figure
 
 
+def o_d_lines_figure():
+    columns = ['Player {}'.format(i) for i in range(7)]
+    players = set(list(data[columns].fillna('V').values.flatten()))
+    players.remove('V')
+    players = sorted(players)
+    goals = data[(data['Tournament'] == TOURNAMENT) &
+                 (data['Action'] == 'Goal')]
+
+    player_stats = {}
+    for player in players:
+        points = goals[(goals[columns] == player).any(axis=1)]
+        o_points = points[points['Line'] == 'O']
+        if len(points) < 5:
+            continue
+        player_stats[player] = (
+            len(points), len(o_points), len(points) - len(o_points)
+        )
+    scatter_data = {
+        'x': [o for _, o, _ in player_stats.values()],
+        'y': [d for _, _, d in player_stats.values()],
+        'text': ['{} - {}'.format(name, t)
+                 for name, (t, o, d) in player_stats.items()],
+        'mode': 'markers+text',
+        'hoverinfo': 'text',
+        'showlegend': False,
+        'marker': {
+            'size': [t for t, _, _ in player_stats.values()],
+            'color': [t/5 for t, _, _ in player_stats.values()],
+        }
+    }
+
+    traces = [go.Scatter(scatter_data)]
+    traces.append({
+        'x': list(range(60)),
+        'y': list(range(60)),
+        'name': 'O-D split',
+        'mode': 'lines',
+        'showlegend': False,
+    })
+
+    figure = {
+        'data': traces,
+        'layout': {
+            'height': 800,
+            'width': 900,
+            'xaxis': {
+                'title': 'Offense',
+            },
+            'yaxis': {
+                'title': 'Defense',
+            },
+        }
+    }
+
+    return figure
+
+
 data = pandas.read_csv(STATS_FILE)
 
 graph_types = {
     'Score Line': score_line_figure,
+    'O-D Lines': o_d_lines_figure,
 }
 
 server = flask.Flask('app')
