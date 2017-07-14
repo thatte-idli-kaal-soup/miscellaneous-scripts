@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, exists, join
 
 import dash
 from dash.dependencies import Input, Output
@@ -132,7 +132,16 @@ def o_d_lines_figure():
     return figure
 
 
-data = pandas.read_csv(STATS_FILE)
+if exists(STATS_FILE):
+    data = pandas.read_csv(STATS_FILE)
+else:
+    from io import BytesIO
+    from cryptography.fernet import Fernet
+    key = os.environ.get('CRYPT_KEY', 'secret')
+    with open('{}.crypt'.format(STATS_FILE), 'rb') as g:
+        crypt_data = g.read()
+    data = pandas.read_csv(BytesIO(Fernet(key).decrypt(crypt_data)))
+
 
 graph_types = {
     'Score Line': score_line_figure,
