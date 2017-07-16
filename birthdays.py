@@ -31,7 +31,7 @@ def add_event(calendar, event):
     name, date = event
     e = Event()
     e.add('summary', "{}'s birthday".format(name))
-    e.add('dtstart', datetime.strptime(date, DATE_FMT))
+    e.add('dtstart', datetime.strptime(date, DATE_FMT).date())
     e.add('rrule', {'freq': 'yearly'})
     calendar.add_component(e)
 
