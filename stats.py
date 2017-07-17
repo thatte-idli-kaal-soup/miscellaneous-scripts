@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import OrderedDict
 import os
 from os.path import abspath, dirname, exists, join
 
@@ -17,10 +18,21 @@ TOURNAMENT = 'BUO 2017'
 TEAM = 'TIKS'
 markers = ['circle', 'square', 'cross', 'diamond']
 
+if exists(STATS_FILE):
+    DATA = pandas.read_csv(STATS_FILE)
+else:
+    from io import BytesIO
+    from cryptography.fernet import Fernet
+    key = os.environ.get('CRYPT_KEY', 'secret')
+    with open('{}.crypt'.format(STATS_FILE), 'rb') as g:
+        crypt_data = g.read()
+    DATA = pandas.read_csv(BytesIO(Fernet(key).decrypt(crypt_data)))
+OPPONENTS = sorted(DATA[DATA['Tournament'] == TOURNAMENT]['Opponent'].unique())
+
 
 def get_match_events(tournament, opponent):
-    points = data[(data['Tournament'] == tournament) &
-                  (data['Opponent'] == opponent)]
+    points = DATA[(DATA['Tournament'] == tournament) &
+                  (DATA['Opponent'] == opponent)]
     # FIXME: Disambiguate by date if there are multiple matches!
     assert len(points['Date/Time'].unique()) == 1, 'Multiple matches!'
     return points
@@ -35,9 +47,8 @@ def get_score_line(points):
 
 
 def score_line_figure():
-    opponents = data[data['Tournament'] == TOURNAMENT]['Opponent'].unique()
     traces = []
-    for i, opponent in enumerate(sorted(opponents)):
+    for i, opponent in enumerate(OPPONENTS):
         events = get_match_events(TOURNAMENT, opponent)
         theirs, ours = get_score_line(events)
         traces.append({
@@ -77,11 +88,11 @@ def score_line_figure():
 
 def o_d_lines_figure():
     columns = ['Player {}'.format(i) for i in range(7)]
-    players = set(list(data[columns].fillna('V').values.flatten()))
+    players = set(list(DATA[columns].fillna('V').values.flatten()))
     players.remove('V')
     players = sorted(players)
-    goals = data[(data['Tournament'] == TOURNAMENT) &
-                 (data['Action'] == 'Goal')]
+    goals = DATA[(DATA['Tournament'] == TOURNAMENT) &
+                 (DATA['Action'] == 'Goal')]
 
     player_stats = {}
     for player in players:
@@ -132,21 +143,10 @@ def o_d_lines_figure():
     return figure
 
 
-if exists(STATS_FILE):
-    data = pandas.read_csv(STATS_FILE)
-else:
-    from io import BytesIO
-    from cryptography.fernet import Fernet
-    key = os.environ.get('CRYPT_KEY', 'secret')
-    with open('{}.crypt'.format(STATS_FILE), 'rb') as g:
-        crypt_data = g.read()
-    data = pandas.read_csv(BytesIO(Fernet(key).decrypt(crypt_data)))
-
-
-graph_types = {
-    'Score Line': score_line_figure,
-    'O-D Lines': o_d_lines_figure,
-}
+graph_types = OrderedDict(
+    [('Score Line', score_line_figure),
+     ('O-D Lines', o_d_lines_figure), ]
+)
 
 server = flask.Flask('app')
 server.secret_key = os.environ.get('secret_key', 'secret')
