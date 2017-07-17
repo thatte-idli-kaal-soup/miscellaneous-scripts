@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
+import plotly.figure_factory as ff
 import flask
 import pandas
 
@@ -143,10 +144,56 @@ def o_d_lines_figure():
     return figure
 
 
+def time_between_points():
+    table = []
+    columns = ['Opponent', 'Median Time (secs)', 'Actual times (secs)']
+    for opponent in OPPONENTS:
+        events = get_match_events(TOURNAMENT, opponent)
+        our_goals = events[(events['Action'] == 'Goal') &
+                           (events['Event Type'] == 'Offense')]
+        pull_times = []
+        for row_index in our_goals.index:
+            goal = DATA.loc[row_index]
+            next_event = DATA.loc[row_index+1]
+            # Ignore if match changed, or half-time
+            if (
+                    next_event['Opponent'] != opponent or
+                    next_event['Event Type'] != 'Defense' or
+                    not next_event['Action'].startswith('Pull')  # Pull(Ob)
+            ):
+                continue
+            pull_time = (
+                next_event['Elapsed Time (secs)'] - goal['Elapsed Time (secs)']
+            )
+            pull_times.append(pull_time)
+        table.append([
+            opponent,
+            int(pandas.Series(pull_times).median()),
+            ', '.join(map(str, pull_times))
+        ])
+    table = ff.create_table(pandas.DataFrame(table, columns=columns),)
+    for annotation in table['layout']['annotations']:
+        annotation['font']['color'] = '#000000'
+    return table
+
+
+def time_between_points_div():
+    return html.P(
+        "We look at median time (and not mean time) to compensate for not knowing how"
+        " accurate the data is -- timeouts, data entry delay, etc. can add outliers"
+    )
+
+
 graph_types = OrderedDict(
     [('Score Line', score_line_figure),
-     ('O-D Lines', o_d_lines_figure), ]
+     ('O-D Lines', o_d_lines_figure),
+     ('Time between points', time_between_points), ]
 )
+
+div_types = OrderedDict(
+    [('Time between points', time_between_points_div)]
+)
+
 
 server = flask.Flask('app')
 server.secret_key = os.environ.get('secret_key', 'secret')
@@ -163,11 +210,12 @@ app.layout = html.Div([
     html.H1('{} - {}'.format(TOURNAMENT, TEAM)),
     dcc.Dropdown(
         id='graph-type-dropdown',
-        options=[{'label': key, 'value': key} for key in graph_types.keys()],
+        options=[{'label': key, 'value': key}
+                 for key in list(graph_types.keys())],
         value='Score Line',
     ),
-
-    dcc.Graph(id='my-graph')
+    dcc.Graph(id='my-graph'),
+    html.Div(id='my-div')
 ], className="container")
 
 app.css.append_css({
@@ -178,7 +226,13 @@ app.css.append_css({
 @app.callback(Output('my-graph', 'figure'),
               [Input('graph-type-dropdown', 'value'), ])
 def update_graph(graph_type):
-    return graph_types[graph_type]()
+    return graph_types[graph_type]() if graph_type in graph_types else ''
+
+
+@app.callback(Output('my-div', 'children'),
+              [Input('graph-type-dropdown', 'value'), ])
+def update_div(div_type):
+    return div_types[div_type]() if div_type in div_types else None
 
 
 if __name__ == '__main__':
