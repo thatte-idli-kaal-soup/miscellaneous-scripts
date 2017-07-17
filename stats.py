@@ -18,7 +18,7 @@ TEAM = 'TIKS'
 markers = ['circle', 'square', 'cross', 'diamond']
 
 
-def get_match_points(tournament, opponent):
+def get_match_events(tournament, opponent):
     points = data[(data['Tournament'] == tournament) &
                   (data['Opponent'] == opponent)]
     # FIXME: Disambiguate by date if there are multiple matches!
@@ -38,8 +38,8 @@ def score_line_figure():
     opponents = data[data['Tournament'] == TOURNAMENT]['Opponent'].unique()
     traces = []
     for i, opponent in enumerate(sorted(opponents)):
-        points = get_match_points(TOURNAMENT, opponent)
-        theirs, ours = get_score_line(points)
+        events = get_match_events(TOURNAMENT, opponent)
+        theirs, ours = get_score_line(events)
         traces.append({
             'x': ours,
             'y': theirs,
