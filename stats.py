@@ -172,6 +172,7 @@ def time_between_points():
             ', '.join(map(str, pull_times))
         ])
     table = ff.create_table(pandas.DataFrame(table, columns=columns),)
+    # FIXME: This is a plot.ly bug - headings are not visible, by default
     for annotation in table['layout']['annotations']:
         annotation['font']['color'] = '#000000'
     return table
@@ -179,8 +180,9 @@ def time_between_points():
 
 def time_between_points_div():
     return html.P(
-        "We look at median time (and not mean time) to compensate for not knowing how"
-        " accurate the data is -- timeouts, data entry delay, etc. can add outliers"
+        "We look at median time (and not mean time) to compensate for not"
+        " knowing how accurate the data is -- timeouts, data entry delay, etc."
+        " can add outliers"
     )
 
 
