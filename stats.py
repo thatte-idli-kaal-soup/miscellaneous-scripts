@@ -59,13 +59,22 @@ def score_line_figure():
             'line': {'dash': 'dashdot', },
             'marker': {'symbol': markers[i % 4], 'size': 8},
             'mode': 'lines+markers',
+            'legendgroup': opponent,
         })
-    traces.append({
-        'x': list(range(16)),
-        'y': list(range(16)),
-        'name': 'Scores level',
-        'mode': 'lines'
-    })
+        traces.append({
+            'x': list(range(16)),
+            'y': list(range(16)),
+            'name': 'Scores level',
+            'mode': 'lines',
+            'opacity': 0.5,
+            'legendgroup': opponent,
+            'showlegend': False,
+            'hoverinfo': "none",
+            'line': {
+                'color': '#666',
+                'width': 0.5,
+            }
+        })
 
     figure = {
         'data': traces,
