@@ -330,11 +330,63 @@ def time_between_points_div():
     )
 
 
+def match_events():
+    figures = []
+    for i, opponent in enumerate(OPPONENTS):
+        events = get_match_events(TOURNAMENT, opponent)
+        offense = events[(events['Event Type'] == 'Offense')]
+        defense = events[(events['Event Type'] == 'Defense')]
+        match_data = {
+            'Catch': offense[offense['Action'] == 'Catch']['Elapsed Time (secs)'].values,
+            'Drop': offense[offense['Action'] == 'Drop']['Elapsed Time (secs)'].values,
+            'Throwaway': offense[offense['Action'] == 'Throwaway']['Elapsed Time (secs)'].values,
+            'Goal': offense[offense['Action'] == 'Goal']['Elapsed Time (secs)'].values,
+            'Opponent Goal': defense[defense['Action'] == 'Goal']['Elapsed Time (secs)'].values,
+        }
+
+        figure = ff.create_distplot(
+            hist_data=list(match_data.values()),
+            group_labels=list(match_data.keys()),
+            curve_type='normal',
+            show_rug=True,
+            show_curve=False,
+            show_hist=False,
+        )
+
+        markers = {
+            'Throwaway': 'pentagon-open',
+            'Drop': 'hexagon-open',
+            'Catch': 'line-ns-open',
+            'Goal': 'star',
+            'Opponent Goal': 'star-open',
+        }
+        # Change the markers!
+        for trace in figure['data']:
+            trace['marker']['symbol'] = markers[trace['name']]
+            trace['y'] = [opponent] * len(trace['y'])
+            if trace['name'] == 'Catch':
+                trace['marker']['size'] = 10
+            if i > 0:
+                trace['showlegend'] = False
+
+        figure['layout'].pop('yaxis1')
+        figure['layout'].pop('yaxis2')
+        figures.append(figure)
+
+    figure = {
+        'data': [trace for fig in figures for trace in fig['data']],
+        'layout': figures[0]['layout'],
+    }
+
+    return figure
+
+
 graph_types = OrderedDict(
     [('Score Line', score_line_figure),
      ('O-D Lines', o_d_lines_figure),
      ('Time between points', time_between_points),
-     ('Passes histogram', passes_histogram), ]
+     ('Passes histogram', passes_histogram),
+     ('Match events', match_events)]
 )
 
 div_types = OrderedDict(
