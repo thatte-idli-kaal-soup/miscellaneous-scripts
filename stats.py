@@ -81,6 +81,7 @@ def score_line_figure():
         'layout': {
             'height': 800,
             'width': 800,
+            'hovermode': 'closest',
             'xaxis': {
                 'title': 'Our score',
             },
@@ -119,7 +120,7 @@ def o_d_lines_figure():
         'text': ['{} - {}'.format(name, t)
                  for name, (t, o, d) in player_stats.items()],
         'mode': 'markers+text',
-        'hoverinfo': 'text',
+        'hoverinfo': 'x+y+text',
         'showlegend': False,
         'marker': {
             'size': [t for t, _, _ in player_stats.values()],
@@ -141,6 +142,7 @@ def o_d_lines_figure():
         'layout': {
             'height': 800,
             'width': 900,
+            'hovermode': 'closest',
             'xaxis': {
                 'title': 'Offense',
             },
