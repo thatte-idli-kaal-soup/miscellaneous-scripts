@@ -126,7 +126,7 @@ def make_layout(title, plot_size):
         showlegend=False,
         width=plot_size,
         height=plot_size,
-        margin=Margin(t=25, b=25, l=25, r=25),
+        margin=Margin(t=50, b=50, l=50, r=50),
         hovermode='closest',
         shapes=[]  # to this list one appends below the dicts defining the ribbon,
         # respectively the ideogram shapes
