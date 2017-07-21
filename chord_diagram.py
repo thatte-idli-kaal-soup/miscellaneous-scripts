@@ -254,15 +254,19 @@ def create_chord_diagram(data, labels):
             make_ideo_shape(path, 'rgb(150,150,150)', ideo_colors[k])
         )
         n = int(len(z)/2)
-        angle = np.mean(ideo_ends[k]) * 180 / PI
-        annotation = {
-            'text': labels[k],
-            'x': z.real[n]*1.1,
-            'y': z.imag[n]*1.1,
-            'textangle': (180 - angle) if 75 < angle < 285 else -angle,
-            'showarrow': False
-        }
-        layout['annotations'].append(annotation)
+        for i, text in enumerate([labels[k], int(row_sum[k])]):
+            angle = np.mean(ideo_ends[k]) * 180 / PI
+            text = text
+            angle = ((180 - angle) if 75 < angle < 285 else -angle) if i == 0 else (90 - angle)
+            factor = 1.1 if i == 0 else 0.96
+            annotation = {
+                'text': text,
+                'x': z.real[n]*factor,
+                'y': z.imag[n]*factor,
+                'textangle': angle,
+                'showarrow': False
+            }
+            layout['annotations'].append(annotation)
 
 
 
