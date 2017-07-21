@@ -264,7 +264,8 @@ def create_chord_diagram(data, labels):
                 'x': z.real[n]*factor,
                 'y': z.imag[n]*factor,
                 'textangle': angle,
-                'showarrow': False
+                'showarrow': False,
+                'opacity': 0.7,
             }
             layout['annotations'].append(annotation)
 
