@@ -451,6 +451,7 @@ app.layout = html.Div([
         id='opponent-dropdown',
         options=[{'label': opponent, 'value': opponent}
                  for opponent in OPPONENTS] + [{'label': 'All', 'value': None}],
+        placeholder='Opponent...',
         value=None
     ),
     dcc.Graph(id='my-graph'),
