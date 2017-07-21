@@ -13,6 +13,8 @@ import plotly.figure_factory as ff
 import flask
 import pandas
 
+from chord_diagram import create_chord_diagram
+
 HERE = dirname(abspath(__file__))
 STATS_FILE = join(HERE, '..', 'data', 'stats.csv')
 TOURNAMENT = 'BUO 2017'
@@ -383,18 +385,48 @@ def match_events():
     return figure
 
 
+def passes_chord_diagram():
+    events = DATA[DATA['Tournament'] == TOURNAMENT]
+    successful_passes = events[
+        ((events['Action'] == 'Goal') | (events['Action'] == 'Catch')) &
+        events['Passer'].notnull() &
+        (events['Passer'] != 'Anonymous') &
+        events['Receiver'].notnull()
+    ]
+    passes = pandas.pivot_table(
+        successful_passes[['Passer', 'Receiver']],
+        index=['Passer'],
+        columns=['Receiver'],
+        aggfunc=len
+    )
+
+    rows = set(passes.index)
+    for player in passes.columns:
+        if player in rows:
+            continue
+        s = pandas.Series(
+            [pandas.np.nan]*len(passes.columns),
+            index=passes.columns,
+            name=player
+        )
+        passes = passes.append(s).sort_index()
+
+    return create_chord_diagram(passes.fillna(0).values, passes.index)
+
 graph_types = OrderedDict(
-    [('Score Line', score_line_figure),
-     ('O-D Lines', o_d_lines_figure),
-     ('Time between points', time_between_points),
-     ('Passes histogram', passes_histogram),
-     ('Match events', match_events)]
+    [
+        ('Score Line', score_line_figure),
+        ('O-D Lines', o_d_lines_figure),
+        ('Time between points', time_between_points),
+        ('Passes histogram', passes_histogram),
+        ('Match events', match_events),
+        ('Passes between players', passes_chord_diagram),
+    ]
 )
 
 div_types = OrderedDict(
     [('Time between points', time_between_points_div), ]
 )
-
 
 server = flask.Flask('app')
 server.secret_key = os.environ.get('secret_key', 'secret')
@@ -411,9 +443,9 @@ app.layout = html.Div([
     html.H1('{} - {}'.format(TOURNAMENT, TEAM)),
     dcc.Dropdown(
         id='graph-type-dropdown',
-        options=[{'label': key, 'value': key}
-                 for key in list(graph_types.keys())],
-        value='Score Line',
+        options=[{'label': graph_type, 'value': graph_type}
+                 for graph_type in list(graph_types.keys())],
+        value='Passes between players',
     ),
     dcc.Dropdown(
         id='opponent-dropdown',
