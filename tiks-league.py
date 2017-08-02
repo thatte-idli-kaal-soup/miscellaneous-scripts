@@ -34,6 +34,13 @@ TOURNAMENTS_SCORE = [
     '20 or more',
 ]
 
+NUMBER_FIELDS = {
+    'age',  # 'height'
+    'throwing', 'catching', 'defense',
+    'handler-cutter', 'offense-defense',
+    'availability'
+}
+
 
 def get_players(data_file):
     with open(data_file) as f:
@@ -84,10 +91,58 @@ def export_ultimate_hat(players):
 
     """
 
-    print("tournaments:throwing:catching:defense")
+    print("skill_score")
     for player in players:
         p = munge_player_dangood(player)
-        print("{captain}{name}:{gender}:{age}:{height[0]}'{height[1]}\":{tournaments}:{throwing}:{catching}:{defense}".format(**p))
+        p = munge_player(p)
+        p['skill_score'] = int(player_skill(p))
+        print("{captain}{name}:{gender}:{age}:{height[0]}'{height[1]}\":{skill_score}".format(**p))
+
+
+def create_teams(N, players):
+    """Create N balanced teams from the given players.
+
+    - Equal number of players in teams (but also take availability into
+      consideration). So, probably, equal availability of players, rather than
+      equal number of players.
+
+    - Balanced number of women players
+
+    - Balance out the potential captains
+
+    - Equal total skill level
+
+    - Handling skill balance
+
+    - Defense skill balance
+
+    """
+
+    players = [munge_player(p) for p in players]
+    teams = {i: [] for i in range(1, N+1)}
+    return teams
+
+
+def munge_player(player):
+    # player = normalize_player(player)
+    player = {
+        key: (float(value) if key in NUMBER_FIELDS else value)
+        for key, value in player.items()
+    }
+    return player
+
+
+def player_skill(player):
+    skill = player['throwing'] + player['catching'] + player['defense']
+    t = player['tournaments']
+    experience = sum(3 - int(x/2) for x in range(2, t+1)) * 5
+    # availability = player['availability'] / 5
+    return (experience_multiplier(player) * skill + experience)
+
+
+def experience_multiplier(player):
+    t = player['tournaments']
+    return math.sqrt(t) / math.sqrt(5)
 
 
 def main():
