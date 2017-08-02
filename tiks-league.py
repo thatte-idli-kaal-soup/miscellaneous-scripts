@@ -8,6 +8,10 @@
 
 import csv
 import math
+from pprint import pprint
+
+from baggage import BAGGAGE
+
 
 COLUMNS = [
     'timestamp',
@@ -42,10 +46,15 @@ NUMBER_FIELDS = {
 }
 
 
+class Player(dict):
+    def __repr__(self):
+        return self['name']
+
+
 def get_players(data_file):
     with open(data_file) as f:
         players = [
-            dict(zip(COLUMNS, row))
+            Player(zip(COLUMNS, row))
             for row in csv.reader(f)
         ][1:]
     return players
@@ -57,7 +66,7 @@ def normalize_player(player):
         for key, value in player.items()
     }
     player['tournaments'] = TOURNAMENTS_SCORE.index(player['tournaments']) + 1
-    return player
+    return Player(player)
 
 
 def munge_player_dangood(player):
@@ -100,7 +109,30 @@ def export_ultimate_hat(players):
 
 
 def create_teams(N, players):
-    """Create N balanced teams from the given players.
+    """Create N balanced teams from the given players. """
+
+    def sort_key(x):
+        return (x['availability'], x['tournaments'])
+    players = [munge_player(p) for p in players]
+    men = filter(lambda x: x['gender'] == 'M', players)
+    women = filter(lambda x: x['gender'] == 'F', players)
+    sorted_men = sorted(men, key=sort_key, reverse=True)
+    sorted_women = sorted(women, key=sort_key, reverse=True)
+    teams = [[] for _ in range(N)]
+    for i, player in enumerate(sorted_men):
+        teams[i % 4].append(player)
+    for i, player in enumerate(sorted_women, start=i+1):
+        teams[i % 4].append(player)
+
+    for team in teams:
+        pprint(team)
+        pprint(evaluate_team(team))
+
+    return teams
+
+
+def evaluate_team(team):
+    """Evaluate the scores for a team, based on the following criteria.
 
     - Equal number of players in teams (but also take availability into
       consideration). So, probably, equal availability of players, rather than
@@ -116,20 +148,54 @@ def create_teams(N, players):
 
     - Defense skill balance
 
+    - Player baggage
+
+    - Age?
+
+    - Height?
+
     """
 
-    players = [munge_player(p) for p in players]
-    teams = {i: [] for i in range(1, N+1)}
-    return teams
+    n = len(team)
+    availability = sum(p['availability'] for p in team) / 5
+    women = sum(1 for p in team if p['gender'] == 'F')
+    captains = sum(1 for p in team if p['captain'] == 'Yes')
+    skill = sum(p['skill_score'] for p in team) / n
+    handling = sum(
+        p['throwing'] * (6 - p['handler-cutter'])/2 if p['handler-cutter'] <= 3
+        else p['throwing']
+        for p in team
+    ) / n
+    defense = sum(
+        p['defense'] * p['offense-defense']/2 if p['offense-defense'] >= 3
+        else p['defense']
+        for p in team
+    ) / n
+    # How many players don't have their baggage player in the team?
+    baggage = sum(
+        1 for player, other in BAGGAGE
+        if
+        (player_in_team(player, team) and not player_in_team(other, team)) or
+        (player_in_team(other, team) and not player_in_team(player, team))
+    )
+
+    return (
+        n, availability, women, captains, skill, handling, defense, baggage
+    )
+
+
+def player_in_team(player_name, team):
+    return player_name in {x['name'] for x in team}
 
 
 def munge_player(player):
-    # player = normalize_player(player)
+    player = normalize_player(player)
     player = {
         key: (float(value) if key in NUMBER_FIELDS else value)
         for key, value in player.items()
     }
-    return player
+    player['skill_score'] = player_skill(player)
+    return Player(player)
 
 
 def player_skill(player):
@@ -147,7 +213,8 @@ def experience_multiplier(player):
 
 def main():
     players = get_players('data/TIKS-league-masala-idli.csv')
-    export_ultimate_hat(players)
+    teams = create_teams(4, players)
+    pprint(teams)
 
 
 if __name__ == '__main__':
