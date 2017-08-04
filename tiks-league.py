@@ -7,6 +7,7 @@
 """
 
 import csv
+import json
 import math
 from pprint import pprint
 
@@ -124,11 +125,9 @@ def create_teams(N, players):
     for i, player in enumerate(sorted_women, start=i+1):
         teams[i % 4].append(player)
 
-    for team in teams:
-        pprint(team)
-        pprint(evaluate_team(team))
-
     return teams
+
+
 
 
 def evaluate_team(team):
@@ -188,6 +187,10 @@ def player_in_team(player_name, team):
     return player_name in {x['name'] for x in team}
 
 
+def create_team_from_names(players, names):
+    return [p for p in players if p['name'] in names]
+
+
 def munge_player(player):
     player = normalize_player(player)
     player = {
@@ -214,8 +217,15 @@ def experience_multiplier(player):
 def main():
     players = get_players('data/TIKS-league-masala-idli.csv')
     teams = create_teams(4, players)
-    pprint(teams)
+    KEYS = ['age', 'comments', 'height', 'handler-cutter', 'offense-defense',
+            'timestamp', 'defense', 'catching', 'throwing', 'skill_score',
+            'tournaments', ]
+    for team in teams:
+        for player in team:
+            for key in KEYS:
+                player.pop(key)
 
+    print(json.dumps(teams))
 
 if __name__ == '__main__':
     main()
