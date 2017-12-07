@@ -129,23 +129,33 @@ def compute_cumulative(ratings, weighted=True):
 
     if not weighted:
         scores = ratings.mean(axis=1)
+        scores.name = 'Average Score'
 
     else:
         def weighted_column(x):
             return x * WEIGHTS[x.name] / TOTAL
 
         scores = ratings.apply(weighted_column).sum(axis=1)
+        scores.name = 'Weighted Score'
 
     return scores
 
 
-def ranks(scores):
+def ranks(ratings, scores_column):
+    """Rank players and create an exported excel file."""
     MEN = [name for name in ratings.index if name not in WOMEN]
-    print(scores.loc[MEN].rank(ascending=False).sort_values())
-    print(scores.loc[WOMEN].rank(ascending=False).sort_values())
+    rankings_men = ratings.loc[MEN].sort_values(by=scores_column, ascending=False)
+    rankings_women = ratings.loc[WOMEN].sort_values(by=scores_column, ascending=False)
+    export_path = join(HERE, '..', 'data', 'peer-review', 'rankings.xlsx')
+    writer = pd.ExcelWriter(export_path)
+    rankings_men.to_excel(writer, sheet_name='Men')
+    rankings_women.to_excel(writer, sheet_name='Women')
+    writer.save()
+    return rankings_men, rankings_women
 
 
 if __name__ == '__main__':
     ratings = aggregate_ratings()
     scores = compute_cumulative(ratings)
-    ranks(scores)
+    ratings[scores.name] = scores
+    ranks(ratings, scores.name)
