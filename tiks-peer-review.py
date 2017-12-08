@@ -10,25 +10,25 @@ import pandas as pd
 from women import WOMEN
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
 COLUMN_WEIGHTS = OrderedDict([
-    # Physical Ability
-    ('Speed', 4),
-    ('Endurance', 4),
-    ('Fitness', 4),
-    # Throwing
-    ('Skill', 6),
-    ('Throwing-Decision', 6),
-    # Receiving
-    ('Mobility', 2),
+    # Physical Ability - 20
+    ('Speed', 5),
+    ('Endurance', 10),
+    ('Fitness', 5),
+    # Throwing - 30
+    ('Skill', 15),
+    ('Throwing-Decision', 15),
+    # Receiving - 15
+    ('Mobility', 5),
     ('Cuts', 5),
     ('Receiving-Decision', 5),
-    # Defense
-    ('Zone', 6),
-    ('Man-mark', 6),
-    # Off-field
-    ('Sideline Support', 3),
-    ('Team Player', 3),
-    ('Spirit', 4),
-    ('Attitude', 2)
+    # Defense - 15
+    ('Zone', 8),
+    ('Man-mark', 7),
+    # Off-field - 20
+    ('Sideline Support', 5),
+    ('Team Player', 5),
+    ('Spirit', 5),
+    ('Attitude', 5)
 ])
 TOTAL = sum(COLUMN_WEIGHTS.values())
 HERE = dirname(abspath(__file__))
