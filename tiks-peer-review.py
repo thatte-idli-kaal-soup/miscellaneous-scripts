@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 import os
-from os.path import abspath, dirname, join
+from os.path import abspath, basename, dirname, join
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -155,10 +155,23 @@ def plot_correlations(ratings):
     plt.show()
 
 
+def accumulate_ratings():
+    """Create one Excel file with all the ratings."""
+
+    root = join(HERE, '../data/peer-review/')
+    DATA = {csv: read_ratings(csv, normalize_columns=False) for csv in iter_data(root)}
+
+    export_path = join(HERE, '..', 'data', 'all-ratings.xlsx')
+    writer = pd.ExcelWriter(export_path)
+    for csv_path, data in DATA.items():
+        name = basename(csv_path).split('.', 1)[0]
+        data.to_excel(writer, sheet_name=name)
+    writer.save()
+
+
 if __name__ == '__main__':
     ratings = aggregate_ratings()
     scores = compute_cumulative(ratings)
     cumulative = ratings.copy()
     cumulative[scores.name] = scores
     ranks(cumulative, scores.name)
-    plot_correlations(ratings)
