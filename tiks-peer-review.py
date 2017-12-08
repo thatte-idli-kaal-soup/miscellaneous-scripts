@@ -3,6 +3,7 @@
 import os
 from os.path import abspath, dirname, join
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from women import WOMEN
@@ -143,10 +144,11 @@ def compute_cumulative(ratings, weighted=True):
 
 def ranks(ratings, scores_column):
     """Rank players and create an exported excel file."""
+
     MEN = [name for name in ratings.index if name not in WOMEN]
     rankings_men = ratings.loc[MEN].sort_values(by=scores_column, ascending=False)
     rankings_women = ratings.loc[WOMEN].sort_values(by=scores_column, ascending=False)
-    export_path = join(HERE, '..', 'data', 'peer-review', 'rankings.xlsx')
+    export_path = join(HERE, '..', 'data', 'rankings.xlsx')
     writer = pd.ExcelWriter(export_path)
     rankings_men.to_excel(writer, sheet_name='Men')
     rankings_women.to_excel(writer, sheet_name='Women')
@@ -154,8 +156,22 @@ def ranks(ratings, scores_column):
     return rankings_men, rankings_women
 
 
+def plot_correlations(ratings):
+    """Plots the correlations between different ratings columns."""
+
+    ax = plt.matshow(ratings.corr())
+    ax.figure.set_size_inches(10, 10)
+    loc = pd.np.arange(len(COLUMNS))
+    plt.xticks(loc, COLUMNS, rotation=90)
+    plt.yticks(loc, COLUMNS)
+    plt.colorbar()
+    plt.show()
+
+
 if __name__ == '__main__':
     ratings = aggregate_ratings()
     scores = compute_cumulative(ratings)
-    ratings[scores.name] = scores
-    ranks(ratings, scores.name)
+    cumulative = ratings.copy()
+    cumulative[scores.name] = scores
+    ranks(cumulative, scores.name)
+    plot_correlations(ratings)
