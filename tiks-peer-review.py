@@ -58,13 +58,14 @@ def iter_data(root_dir):
             yield join(root, name)
 
 
-def read_ratings(csv_path):
+def read_ratings(csv_path, normalize_columns=True):
     """Read peer ratings from a single CSV/xlsx file."""
     reader = pd.read_excel if csv_path.endswith('.xlsx') else pd.read_csv
     data = reader(csv_path, skiprows=9, header=None, index_col=0, names=COLUMNS)
     data.index = [name.strip() for name in data.index]
     data.index.name = 'Players'
-    data = normalize_ratings(data)
+    if normalize_columns:
+        data = normalize_ratings(data)
     return data
 
 
@@ -97,7 +98,7 @@ def normalize_ratings(data):
     return n_data_men.append(n_data_women)
 
 
-def aggregate_ratings():
+def aggregate_ratings(normalize_columns=True):
     """Calculate the aggregate ratings for players.
 
     Average the ratings every player obtained for all the parameters.
@@ -107,7 +108,7 @@ def aggregate_ratings():
 
     """
     root = join(HERE, '../data/peer-review/')
-    DATA = {csv: read_ratings(csv) for csv in iter_data(root)}
+    DATA = {csv: read_ratings(csv, normalize_columns=normalize_columns) for csv in iter_data(root)}
 
     sample = list(DATA.values())[0]
 
