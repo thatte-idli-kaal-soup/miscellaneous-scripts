@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from collections import OrderedDict
 import os
 from os.path import abspath, dirname, join
 
@@ -8,44 +9,28 @@ import pandas as pd
 
 from women import WOMEN
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
-COLUMNS = [
-    'Speed',
-    'Endurance',
-    'Fitness',
-    'Skill',
-    'Throwing-Decision',
-    'Mobility',
-    'Cuts',
-    'Receiving-Decision',
-    'Zone',
-    'Man-mark',
-    'Sideline Support',
-    'Team Player',
-    'Spirit',
-    'Attitude'
-]
-WEIGHTS = {
+COLUMN_WEIGHTS = OrderedDict([
     # Physical Ability
-    'Speed': 4,
-    'Endurance': 4,
-    'Fitness': 4,
+    ('Speed', 4),
+    ('Endurance', 4),
+    ('Fitness', 4),
     # Throwing
-    'Skill': 6,
-    'Throwing-Decision': 6,
+    ('Skill', 6),
+    ('Throwing-Decision', 6),
     # Receiving
-    'Mobility': 2,
-    'Cuts': 5,
-    'Receiving-Decision': 5,
+    ('Mobility', 2),
+    ('Cuts', 5),
+    ('Receiving-Decision', 5),
     # Defense
-    'Zone': 6,
-    'Man-mark': 6,
+    ('Zone', 6),
+    ('Man-mark', 6),
     # Off-field
-    'Sideline Support': 3,
-    'Team Player': 3,
-    'Spirit': 4,
-    'Attitude': 2,
-}
-TOTAL = sum(WEIGHTS.values())
+    ('Sideline Support', 3),
+    ('Team Player', 3),
+    ('Spirit', 4),
+    ('Attitude', 2)
+])
+TOTAL = sum(COLUMN_WEIGHTS.values())
 HERE = dirname(abspath(__file__))
 
 
@@ -61,7 +46,7 @@ def iter_data(root_dir):
 def read_ratings(csv_path, normalize_columns=True):
     """Read peer ratings from a single CSV/xlsx file."""
     reader = pd.read_excel if csv_path.endswith('.xlsx') else pd.read_csv
-    data = reader(csv_path, skiprows=9, header=None, index_col=0, names=COLUMNS)
+    data = reader(csv_path, skiprows=9, header=None, index_col=0, names=COLUMN_WEIGHTS.keys())
     data.index = [name.strip() for name in data.index]
     data.index.name = 'Players'
     if normalize_columns:
@@ -135,7 +120,7 @@ def compute_cumulative(ratings, weighted=True):
 
     else:
         def weighted_column(x):
-            return x * WEIGHTS[x.name] / TOTAL
+            return x * COLUMN_WEIGHTS[x.name] / TOTAL
 
         scores = ratings.apply(weighted_column).sum(axis=1)
         scores.name = 'Weighted Score'
@@ -162,9 +147,10 @@ def plot_correlations(ratings):
 
     ax = plt.matshow(ratings.corr())
     ax.figure.set_size_inches(10, 10)
-    loc = pd.np.arange(len(COLUMNS))
-    plt.xticks(loc, COLUMNS, rotation=90)
-    plt.yticks(loc, COLUMNS)
+    loc = pd.np.arange(len(COLUMN_WEIGHTS))
+    labels = COLUMN_WEIGHTS.keys()
+    plt.xticks(loc, labels, rotation=90)
+    plt.yticks(loc, labels)
     plt.colorbar()
     plt.show()
 
