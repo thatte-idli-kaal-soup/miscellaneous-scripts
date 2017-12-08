@@ -7,7 +7,7 @@ from os.path import abspath, basename, dirname, join
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from women import WOMEN
+from players import WOMEN
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
 COLUMN_WEIGHTS = OrderedDict([
     # Physical Ability - 20
