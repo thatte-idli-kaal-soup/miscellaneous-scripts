@@ -7,30 +7,63 @@ from os.path import abspath, basename, dirname, join
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from players import WOMEN
+from players import (
+    MEN, MEN_CUTTERS, MEN_HANDLERS, MEN_FLEX,
+    WOMEN, WOMEN_CUTTERS, WOMEN_HANDLERS, WOMEN_FLEX,
+)
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
-COLUMN_WEIGHTS = OrderedDict([
-    # Physical Ability - 20
+HANDLER_WEIGHTS = OrderedDict([
+    # Physical Ability - 15
     ('Speed', 5),
-    ('Endurance', 10),
+    ('Endurance', 5),
     ('Fitness', 5),
+
     # Throwing - 30
     ('Skill', 15),
     ('Throwing-Decision', 15),
+
     # Receiving - 15
     ('Mobility', 5),
     ('Cuts', 5),
     ('Receiving-Decision', 5),
-    # Defense - 15
-    ('Zone', 8),
-    ('Man-mark', 7),
+
+    # Defense - 20
+    ('Zone', 10),
+    ('Man-mark', 10),
+
     # Off-field - 20
     ('Sideline Support', 5),
     ('Team Player', 5),
     ('Spirit', 5),
     ('Attitude', 5)
 ])
-TOTAL = sum(COLUMN_WEIGHTS.values())
+
+CUTTER_WEIGHTS = OrderedDict([
+    # Physical Ability - 20
+    ('Speed', 5),
+    ('Endurance', 10),
+    ('Fitness', 5),
+
+    # Throwing - 25
+    ('Skill', 10),
+    ('Throwing-Decision', 15),
+
+    # Receiving - 15
+    ('Mobility', 5),
+    ('Cuts', 5),
+    ('Receiving-Decision', 5),
+
+    # Defense - 25
+    ('Zone', 13),
+    ('Man-mark', 12),
+
+    # Off-field - 15
+    ('Sideline Support', 5),
+    ('Team Player', 5),
+    ('Spirit', 2.5),
+    ('Attitude', 2.5)
+])
+TOTAL = sum(HANDLER_WEIGHTS.values())
 HERE = dirname(abspath(__file__))
 
 
@@ -46,7 +79,7 @@ def iter_data(root_dir):
 def read_ratings(csv_path, normalize_columns=True):
     """Read peer ratings from a single CSV/xlsx file."""
     reader = pd.read_excel if csv_path.endswith('.xlsx') else pd.read_csv
-    data = reader(csv_path, skiprows=9, header=None, index_col=0, names=COLUMN_WEIGHTS.keys())
+    data = reader(csv_path, skiprows=9, header=None, index_col=0, names=HANDLER_WEIGHTS.keys())
     data.index = [name.strip() for name in data.index]
     data.index.name = 'Players'
     if normalize_columns:
@@ -111,16 +144,16 @@ def aggregate_ratings(normalize_columns=True):
     return aggregate[counts >= MIN_RATINGS]
 
 
-def compute_cumulative(ratings, weighted=True):
+def compute_cumulative(ratings, weights=None):
     """Computes the cumulative rating based on weights for each column."""
 
-    if not weighted:
+    if weights is None:
         scores = ratings.mean(axis=1)
         scores.name = 'Average Score'
 
     else:
         def weighted_column(x):
-            return x * COLUMN_WEIGHTS[x.name] / TOTAL
+            return x * weights[x.name] / TOTAL
 
         scores = ratings.apply(weighted_column).sum(axis=1)
         scores.name = 'Weighted Score'
@@ -128,27 +161,13 @@ def compute_cumulative(ratings, weighted=True):
     return scores
 
 
-def ranks(ratings, scores_column):
-    """Rank players and create an exported excel file."""
-
-    MEN = [name for name in ratings.index if name not in WOMEN]
-    rankings_men = ratings.loc[MEN].sort_values(by=scores_column, ascending=False)
-    rankings_women = ratings.loc[WOMEN].sort_values(by=scores_column, ascending=False)
-    export_path = join(HERE, '..', 'data', 'rankings.xlsx')
-    writer = pd.ExcelWriter(export_path)
-    rankings_men.to_excel(writer, sheet_name='Men')
-    rankings_women.to_excel(writer, sheet_name='Women')
-    writer.save()
-    return rankings_men, rankings_women
-
-
 def plot_correlations(ratings):
     """Plots the correlations between different ratings columns."""
 
     ax = plt.matshow(ratings.corr())
     ax.figure.set_size_inches(10, 10)
-    loc = pd.np.arange(len(COLUMN_WEIGHTS))
-    labels = COLUMN_WEIGHTS.keys()
+    loc = pd.np.arange(len(HANDLER_WEIGHTS))
+    labels = HANDLER_WEIGHTS.keys()
     plt.xticks(loc, labels, rotation=90)
     plt.yticks(loc, labels)
     plt.colorbar()
@@ -171,7 +190,25 @@ def accumulate_ratings():
 
 if __name__ == '__main__':
     ratings = aggregate_ratings()
-    scores = compute_cumulative(ratings)
-    cumulative = ratings.copy()
-    cumulative[scores.name] = scores
-    ranks(cumulative, scores.name)
+    export_path = join(HERE, '..', 'data', 'rankings.xlsx')
+    writer = pd.ExcelWriter(export_path)
+    for role in ('cutter', 'handler'):
+        for gender in ('men', 'women'):
+            if gender == 'men' and role == 'cutter':
+                weights = CUTTER_WEIGHTS
+                players = ratings.loc[MEN_CUTTERS]
+            elif gender == 'men' and role == 'handler':
+                weights = HANDLER_WEIGHTS
+                players = ratings.loc[MEN_HANDLERS]
+            elif gender == 'women' and role == 'cutter':
+                weights = CUTTER_WEIGHTS
+                players = ratings.loc[WOMEN_CUTTERS]
+            elif gender == 'women' and role == 'handler':
+                weights = HANDLER_WEIGHTS
+                players = ratings.loc[WOMEN_HANDLERS]
+            scores = compute_cumulative(players, weights)
+            cumulative = players.copy()
+            cumulative[scores.name] = scores
+            rankings = cumulative.sort_values(by=scores.name, ascending=False)
+            rankings.to_excel(writer, sheet_name='{}-{}'.format(role, gender))
+    writer.save()
