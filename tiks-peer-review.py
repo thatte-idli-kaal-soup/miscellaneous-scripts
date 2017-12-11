@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from players import (
-    MEN, MEN_CUTTERS, MEN_HANDLERS, MEN_FLEX,
-    WOMEN, WOMEN_CUTTERS, WOMEN_HANDLERS, WOMEN_FLEX,
+    MEN, MEN_CUTTERS, MEN_HANDLERS,
+    WOMEN, WOMEN_CUTTERS, WOMEN_HANDLERS,
 )
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
 HANDLER_WEIGHTS = OrderedDict([
@@ -100,8 +100,6 @@ def normalize_ratings(data):
     aggregated scores.
 
     """
-
-    MEN = [name for name in data.index if name not in WOMEN]
 
     data_men = data.loc[MEN]
     data_women = data.loc[WOMEN]
