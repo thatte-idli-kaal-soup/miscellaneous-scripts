@@ -29,6 +29,9 @@ We hope that you'll be a good santa and give your kiddo an apt gift.
 
 Regards,
 {from}
+
+PS: Secret Santa is powered by Rudolph --
+https://github.com/punchagan/thatte-idli/blob/master/scripts/secret-santa.py
 """)
 HEADERS = """\
 From: {from} <{from_id}>\r
