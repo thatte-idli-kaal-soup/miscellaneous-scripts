@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-"""Script to choose secret kiddos
+"""Rudolph: Pair kiddos with Secret Santas
 
-Usage: secret-santa.py --run
+Usage: rudolph.py --run
 
 NOTE: Change the subject line and other globals before running the script.
 
@@ -31,7 +31,7 @@ Regards,
 {from}
 
 PS: Secret Santa is powered by Rudolph --
-https://github.com/punchagan/thatte-idli/blob/master/scripts/secret-santa.py
+https://github.com/punchagan/thatte-idli/blob/master/scripts/rudolph.py
 """)
 HEADERS = """\
 From: {from} <{from_id}>\r
