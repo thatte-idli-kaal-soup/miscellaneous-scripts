@@ -16,6 +16,7 @@ import getpass
 from os.path import abspath, dirname, exists, join
 import random
 import smtplib
+from string import ascii_lowercase
 from textwrap import dedent
 
 import pandas as pd
@@ -127,17 +128,19 @@ def persist_pairs(pairs):
     problems, this would be good to have around.
 
     """
-    PAIRS = join(HERE, '..', 'data', 'secret-santa-paired-people.pkl')
+    unique = ''.join(random.choice(ascii_lowercase) for _ in range(8))
+    PAIRS = join(HERE, '..', 'data', 'secret-santa-paired-people-{}.pkl'.format(unique))
     pd.Series(dict(pairs)).to_pickle(PAIRS)
+    print('Persisted pairs to {}'.format(PAIRS))
 
 
 def main(test=True):
     people = get_people()
     pairs = pick_pairs(people)
     assert is_good_pairing(pairs), 'Pairing is buggy!'
+    persist_pairs(pairs)
 
     if not test:
-        persist_pairs(pairs)
         from_id = input("Your Email: ")
         password = getpass.getpass()
 
