@@ -4,6 +4,10 @@
 
 Usage: rudolph.py --run
 
+Reads the list of participants from ../data/secret-santa.csv. The CSV file must
+have column headings, and a column named 'Email'. The first column MUST be the
+names of the participants.
+
 NOTE: Change the subject line and other globals before running the script.
 
 """
@@ -48,6 +52,12 @@ PEOPLE = join(HERE, '..', 'data', 'secret-santa.csv')
 
 
 def get_people():
+    """Reads list of participants from ../data/secret-santa.csv
+
+    The CSV file needs to have column headers and a column named 'Email'. The
+    first column MUST be the names of the participants.
+
+    """
     if exists(PEOPLE):
         people = pd.read_csv(PEOPLE, index_col=0)['Email'].to_dict()
     else:
@@ -60,6 +70,7 @@ def get_people():
 
 
 def is_good_pairing(pairs):
+    """Function to test if a pairing is valid."""
     santas = set()
     kiddos = set()
 
@@ -73,6 +84,7 @@ def is_good_pairing(pairs):
 
 
 def pick_pairs(people):
+    """Pick pairs from a given name:email mapping."""
     n = len(people)
     m = n//2
     names = list(people.keys())
@@ -83,12 +95,12 @@ def pick_pairs(people):
 
 
 def notify_santa(**kwargs):
+    """Notify a Santa about their kiddo."""
     email = HEADERS + BODY
     msg = email.format(**kwargs)
     from_id = kwargs['from_id']
     password = kwargs['password']
     to_id = kwargs['santa_id']
-    print('Sending an e-mail to {}'.format(to_id))
 
     if not kwargs.get('password'):
         print(msg)
@@ -99,6 +111,7 @@ def notify_santa(**kwargs):
 
 
 def send_email(from_id, password, to_id, msg, host='smtp.gmail.com', port=587):
+    """Send an email."""
     mail = smtplib.SMTP(host, port)
     mail.ehlo()
     mail.starttls()
@@ -131,8 +144,10 @@ def main(test=True):
     else:
         from_id = password = None
 
-    for santa, kiddo in pairs:
+    n = len(pairs)
+    for i, (santa, kiddo) in enumerate(pairs, 1):
         santa_id = people[santa]
+        print('Sending an e-mail to {} ({} of {})'.format(santa_id, i, n))
         notify_santa(**{
             'santa_id': santa_id,
             'santa': santa,
