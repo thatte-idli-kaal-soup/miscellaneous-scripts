@@ -64,7 +64,8 @@ def is_good_pairing(pairs):
     kiddos = set()
 
     for santa, kiddo in pairs:
-        if santa == kiddo: return False
+        if santa == kiddo:
+            return False
         santas.add(santa)
         kiddos.add(kiddo)
 
@@ -76,7 +77,7 @@ def pick_pairs(people):
     m = n//2
     names = list(people.keys())
     santas = random.sample(names, n)
-    santas_1, santas_2 = santas[:m], santas[m:]
+    santas_1, santas_2 = random.sample(santas[:m], m), random.sample(santas[m:], n-m)
     kiddos_1, kiddos_2 = santas[n-m:], santas[:n-m]
     return list(zip(santas_1, kiddos_1)) + list(zip(santas_2, kiddos_2))
 
