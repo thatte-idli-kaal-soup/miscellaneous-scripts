@@ -108,6 +108,12 @@ def send_email(from_id, password, to_id, msg, host='smtp.gmail.com', port=587):
 
 
 def persist_pairs(pairs):
+    """Persist the pairing data to disk
+
+    Ideally, this data needn't/shouldn't be persisted, but in case of any
+    problems, this would be good to have around.
+
+    """
     PAIRS = join(HERE, '..', 'data', 'secret-santa-paired-people.pkl')
     pd.Series(dict(pairs)).to_pickle(PAIRS)
 
@@ -116,9 +122,9 @@ def main(test=True):
     people = get_people()
     pairs = pick_pairs(people)
     assert is_good_pairing(pairs), 'Pairing is buggy!'
-    persist_pairs(pairs)
 
     if not test:
+        persist_pairs(pairs)
         from_id = input("Your Email: ")
         password = getpass.getpass()
 
