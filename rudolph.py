@@ -27,6 +27,10 @@ Your secret santa kiddo is *{kiddo}*!
 
 We hope that you'll be a good santa and give your kiddo an apt gift.
 
+We'll exchange gifts on the 30th of December at practice. Those who can't make
+it to practice on that day, please find an alternative day and way of
+delivering your gifts.
+
 Regards,
 {from}
 
