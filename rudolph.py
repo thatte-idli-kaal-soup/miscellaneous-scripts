@@ -89,7 +89,10 @@ def pick_pairs(people):
     n = len(people)
     m = n//2
     names = list(people.keys())
+    # Shuffle the names
     santas = random.sample(names, n)
+    # Split the shuffled names into two halves and assign kiddos from 'other'
+    # halves.  Shuffle the santa names, before assignment.
     santas_1, santas_2 = random.sample(santas[:m], m), random.sample(santas[m:], n-m)
     kiddos_1, kiddos_2 = santas[n-m:], santas[:n-m]
     return list(zip(santas_1, kiddos_1)) + list(zip(santas_2, kiddos_2))
