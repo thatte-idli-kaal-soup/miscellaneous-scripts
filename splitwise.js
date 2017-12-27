@@ -12,7 +12,7 @@ names.map(function([name, email]){
 });
 
 names.map(function([name, email], i){
-    console.log(i);
+    console.log(i, name, email);
     document.querySelectorAll('.name')[i].value = name;
     document.querySelectorAll('.email')[i].value = email;
 });
