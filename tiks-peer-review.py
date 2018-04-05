@@ -178,7 +178,7 @@ def accumulate_ratings():
     root = join(HERE, '../data/peer-review/')
     DATA = {csv: read_ratings(csv, normalize_columns=False) for csv in iter_data(root)}
 
-    export_path = join(HERE, '..', 'data', 'all-ratings.xlsx')
+    export_path = join(HERE, 'data', 'all-ratings.xlsx')
     writer = pd.ExcelWriter(export_path)
     for csv_path, data in DATA.items():
         name = basename(csv_path).split('.', 1)[0]
@@ -188,7 +188,7 @@ def accumulate_ratings():
 
 if __name__ == '__main__':
     ratings = aggregate_ratings()
-    export_path = join(HERE, '..', 'data', 'rankings.xlsx')
+    export_path = join(HERE, 'data', 'rankings.xlsx')
     writer = pd.ExcelWriter(export_path)
     for role in ('cutter', 'handler'):
         for gender in ('men', 'women'):

@@ -49,7 +49,7 @@ Subject: {subject}\r
 \r
 """
 HERE = dirname(abspath(__file__))
-PEOPLE = join(HERE, '..', 'data', 'secret-santa.csv')
+PEOPLE = join(HERE, 'data', 'secret-santa.csv')
 
 
 def get_people():
@@ -132,7 +132,7 @@ def persist_pairs(pairs):
 
     """
     unique = ''.join(random.choice(ascii_lowercase) for _ in range(8))
-    PAIRS = join(HERE, '..', 'data', 'secret-santa-paired-people-{}.pkl'.format(unique))
+    PAIRS = join(HERE, 'data', 'secret-santa-paired-people-{}.pkl'.format(unique))
     pd.Series(dict(pairs)).to_pickle(PAIRS)
     print('Persisted pairs to {}'.format(PAIRS))
 
