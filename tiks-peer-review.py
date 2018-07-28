@@ -3,27 +3,30 @@ from collections import OrderedDict
 import glob
 from os.path import abspath, basename, dirname, join
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 MIN_RATINGS = 5  # Minimum number of ratings required to show aggregate
 PLAYER_ROLES = None
 HANDLER_WEIGHTS = OrderedDict(
-    [('Skill', 15), ('Throwing-Decision', 15), ('Mobility', 5), ('Cuts', 5), ('Receiving-Decision', 5), ('Zone', 10), ('Person defense', 10), ('Disc-mark', 10), ('Sideline Support', 5), ('Team Player', 5), ('Spirit & Attitude', 5)]
-    # Physical Ability - 15
     # Throwing - 30
     # Receiving - 15
-    # Defense - 20
-    # Off-field - 20
+    # Defense - 30
+    # Off-field - 5
+    [
+        ('Skill', 15),
+        ('Throwing-Decision', 15),
+        ('Mobility', 5),
+        ('Cuts', 5),
+        ('Receiving-Decision', 5),
+        ('Zone', 10),
+        ('Person defense', 10),
+        ('Disc-mark', 10),
+        ('Sideline Support', 5),
+        ('Team Player', 0),
+        ('Spirit & Attitude', 0),
+    ]
 )
-CUTTER_WEIGHTS = OrderedDict(
-    [('Skill', 15), ('Throwing-Decision', 15), ('Mobility', 5), ('Cuts', 5), ('Receiving-Decision', 5), ('Zone', 10), ('Person defense', 10), ('Disc-mark', 10), ('Sideline Support', 5), ('Team Player', 5), ('Spirit & Attitude', 5)]
-    # Physical Ability - 15
-    # Throwing - 30
-    # Receiving - 15
-    # Defense - 20
-    # Off-field - 20
-)
+CUTTER_WEIGHTS = HANDLER_WEIGHTS
 WEIGHTS = {'cutter': CUTTER_WEIGHTS, 'handler': HANDLER_WEIGHTS}
 TOTAL = sum(HANDLER_WEIGHTS.values())
 HERE = dirname(abspath(__file__))
