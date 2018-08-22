@@ -136,6 +136,10 @@ def compute_cumulative(ratings, weights=None):
     return scores
 
 
+def ranked_by(csv_path):
+    return basename(csv_path).split('.', 1)[0]
+
+
 def accumulate_ratings(data_dir):
     """Create one Excel file with all the ratings."""
     root = join(HERE, data_dir)
@@ -147,10 +151,36 @@ def accumulate_ratings(data_dir):
     writer = pd.ExcelWriter(export_path)
     for csv_path, data in DATA.items():
         for i, gender in enumerate(('men', 'women')):
-            name = basename(csv_path).split('.', 1)[0]
+            name = ranked_by(csv_path)
             data[i].to_excel(writer, sheet_name='{}-{}'.format(name, gender))
     writer.save()
     print('Exported single file with all inputs: {}'.format(export_path))
+
+
+def ranked_names(data, weights=HANDLER_WEIGHTS):
+    return data.mul(weights).sum(axis=1).sort_values(ascending=False).index
+
+
+def individual_rankings(data_dir):
+    root = join(HERE, data_dir)
+    DATA = {
+        csv: read_ratings(csv, normalize_columns=False)
+        for csv in sorted(glob.glob(join(root, '*.xlsx')))
+    }
+    men = {
+        ranked_by(csv_path): ranked_names(m)
+        for csv_path, (m, _) in DATA.items()
+    }
+    women = {
+        ranked_by(csv_path): ranked_names(w)
+        for csv_path, (_, w) in DATA.items()
+    }
+    export_path = join(root, 'output', 'peer-rating-teams.xlsx')
+    writer = pd.ExcelWriter(export_path)
+    for gender, data in (('men', men), ('women', women)):
+        pd.DataFrame(data).to_excel(writer, sheet_name='{}'.format(gender))
+    writer.save()
+    return
 
 
 def main(data_dir):
