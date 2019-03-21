@@ -89,11 +89,9 @@ def is_perfect_score(point):
     n = point_num_players(point)
     num_touches = n - 1
     events = point[-num_touches:]
-    return (
-        num_touches
-        == len(set(events["Passer"]))
-        == len(set(events["Receiver"]))
-    )
+    passers = set(events["Passer"].dropna()) - {"Anonymous"}
+    catchers = set(events["Receiver"].dropna()) - {"Anonymous"}
+    return num_touches == len(passers) == len(catchers)
 
 
 def main(url):
