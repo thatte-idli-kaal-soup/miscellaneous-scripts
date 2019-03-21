@@ -82,7 +82,12 @@ def has_no_turnovers(point):
     """Check if the team remains on offense since they first got on offense."""
     offense = point[point["Event Type"] == "Offense"]
     idx = offense.index
-    return idx.min() + len(offense) == idx.max() + 1
+    return (
+        # Team keeps possession till the end
+        point.index.max() == idx.max()
+        # Team didn't lose possession in between, once on Offense
+        and idx.min() + len(offense) == idx.max() + 1
+    )
 
 
 def is_perfect_score(point):
