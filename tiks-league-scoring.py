@@ -4,8 +4,8 @@
 Computes the scores for games, and also the additional on-field and off-field
 scoring.
 
-NOTE: The Elapsed Time is assumed to be not accurate since the data was entered
-from videos that were recorded.
+NOTE: The Elapsed Time column should be ignored, since all the data was entered
+from recorded videos.
 
 Off field scoring(Counts towards League points) +2.5
 1. Team with equal number of passes betweeen M-M, M-W, W-M, W-W
