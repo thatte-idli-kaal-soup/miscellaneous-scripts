@@ -25,23 +25,7 @@ On field scoring(Counts towards goal tally, per game)
 import pandas as pd
 
 
-def on_field_score_team(points):
-    additional_points = 0
-    for score, point in points:
-        if is_all_touch(point):
-            additional_points += 0.5
-
-            if is_perfect_score(point):
-                additional_points += 0.5
-
-        if has_no_turnovers(point):
-            additional_points += 0.5
-
-    ours, theirs = score
-    return (ours, additional_points)
-
-
-# Data-helpers ############################################
+# Data-helpers #########################################################
 
 
 def iter_points(data):
@@ -75,7 +59,7 @@ def point_num_players(point):
     return players
 
 
-# On-field scoring ###############################
+# On-field scoring #####################################################
 
 
 def is_all_touch(point):
@@ -108,6 +92,29 @@ def is_perfect_score(point):
     passers = set(events["Passer"].dropna()) - {"Anonymous"}
     catchers = set(events["Receiver"].dropna()) - {"Anonymous"}
     return num_touches == len(passers) == len(catchers)
+
+
+def on_field_score_team(points):
+    """Compute on-field score of a team.
+
+    Return (Goals, Additional Points)
+    """
+    additional_points = 0
+    for score, point in points:
+        if is_all_touch(point):
+            additional_points += 0.5
+
+            if is_perfect_score(point):
+                additional_points += 0.5
+
+        if has_no_turnovers(point):
+            additional_points += 0.5
+
+    ours, theirs = score
+    return (ours, additional_points)
+
+
+# Main  ################################################################
 
 
 def main(game_urls):
