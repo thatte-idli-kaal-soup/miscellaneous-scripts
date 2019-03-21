@@ -22,6 +22,8 @@ On field scoring(Counts towards goal tally, per game)
 
 """
 
+from collections import Counter
+
 import pandas as pd
 
 
@@ -114,6 +116,33 @@ def on_field_score_team(points):
     return (ours, additional_points)
 
 
+# Off-field scoring ####################################################
+
+
+def passes_by_gender(data):
+    """Return count of passes by gender (M-M, M-F, F-M, F-F)."""
+    from gender import FEMALE, ALL
+
+    def player_gender(name):
+        assert name in ALL, "{} not listed".format(name)
+        return "F" if name in FEMALE else "M"
+
+    def f(row):
+        passer, catcher = row
+        return "{}-{}".format(player_gender(passer), player_gender(catcher))
+
+    catches = data[data["Action"] == "Catch"]  # FIXME: Only completions?
+    gender_passes = catches[["Passer", "Receiver"]].apply(f, axis=1)
+    return Counter(gender_passes)
+
+
+def off_field_scoring(data_1, data_2):
+    x = passes_by_gender(data_1)
+    y = passes_by_gender(data_2)
+    print(x, y)
+    return
+
+
 # Main  ################################################################
 
 
@@ -126,6 +155,7 @@ def main(game_urls):
     name_2 = data_1["Opponent"].iloc[0]
     print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
     print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
+    off_field_scoring(data_1, data_2)
 
 
 if __name__ == "__main__":
