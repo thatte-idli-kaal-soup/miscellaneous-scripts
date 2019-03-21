@@ -52,9 +52,10 @@ def is_all_touch(point):
     # How is all-touch defined? Between turns? Or between scores? To keep it
     # simple, let's say between scores. The idea is to see if everyone on the
     # field is involved. So, between scores is fine!
-    passers = point["Passer"]
-    touchers = passers.dropna()
-    return len(touchers) == n
+    passers = point["Passer"].dropna()
+    catchers = point["Receiver"].dropna()
+    touches = (set(passers) | set(catchers)) - {"Anonymous"}
+    return len(touches) == n
 
 
 def point_num_players(point):
