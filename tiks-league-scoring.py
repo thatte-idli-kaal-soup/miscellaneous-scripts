@@ -200,8 +200,8 @@ def find_match_data(root_dir):
         matches[key].append(path)
     for match in matches.values():
         if len(match) < 2:
-            print("Skipping match: {}".format(match))
-            continue
+            print("Duplicating URL for match: {}".format(match))
+            match = match * 2
         yield match
 
 
