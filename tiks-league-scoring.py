@@ -171,11 +171,11 @@ def longest_no_turn_score(points):
 def off_field_scoring(data_1, data_2):
     x = passes_by_gender(data_1)
     y = passes_by_gender(data_2)
-    # NOTE: How do we score?
+    # FIXME: How do we score?
     print(x, y)
     x = pullers(data_1)
     y = pullers(data_2)
-    # NOTE: Take into account total number of pulls made by each team?
+    # FIXME: Take into account total number of pulls made by each team?
     print(x, y)
     x = longest_no_turn_score(iter_points(data_1))
     y = longest_no_turn_score(iter_points(data_2))
