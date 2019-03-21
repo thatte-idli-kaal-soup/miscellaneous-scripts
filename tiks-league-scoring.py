@@ -148,6 +148,25 @@ def pullers(data):
     return set(data[data.apply(is_pull, axis=1)]["Defender"])
 
 
+def no_turn_score_pass_count(point):
+    """Number of passes made before score, without a turnover.
+
+    The team could start on O or D. We count number of passes after the team
+    gained possession for the first time.
+
+    """
+
+    count = (
+        len(point[point["Event Type"] == "Offense"])
+        if has_no_turnovers(point)
+        else 0
+    )
+    return count
+
+
+def longest_no_turn_score(points):
+    return max(no_turn_score_pass_count(point) for _, point in points)
+
 
 def off_field_scoring(data_1, data_2):
     x = passes_by_gender(data_1)
@@ -157,6 +176,9 @@ def off_field_scoring(data_1, data_2):
     x = pullers(data_1)
     y = pullers(data_2)
     # NOTE: Take into account total number of pulls made by each team?
+    print(x, y)
+    x = longest_no_turn_score(iter_points(data_1))
+    y = longest_no_turn_score(iter_points(data_2))
     print(x, y)
     return
 
