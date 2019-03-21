@@ -142,7 +142,11 @@ def passes_by_gender(data):
 
 
 def pullers(data):
-    return set(data[data["Action"] == "Pull"]["Defender"])
+    def is_pull(row):
+        return row["Action"] in {"Pull", "PullOb"}
+
+    return set(data[data.apply(is_pull, axis=1)]["Defender"])
+
 
 
 def off_field_scoring(data_1, data_2):
