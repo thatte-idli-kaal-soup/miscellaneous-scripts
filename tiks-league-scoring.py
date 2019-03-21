@@ -43,6 +43,9 @@ def parse_match(url):
     print(score)
 
 
+# Data-helpers ############################################
+
+
 def iter_points(data):
     """Iterator over match score and points tuples"""
     points = data.groupby(
@@ -54,20 +57,6 @@ def iter_points(data):
             point = point.loc[:idx]
         assert point["Action"].iloc[-1] == "Goal"
         yield score, point
-
-
-def is_all_touch(point):
-    """Is it an all-touch point?"""
-
-    n = point_num_players(point)
-
-    # How is all-touch defined? Between turns? Or between scores? To keep it
-    # simple, let's say between scores. The idea is to see if everyone on the
-    # field is involved. So, between scores is fine!
-    passers = point["Passer"].dropna()
-    catchers = point["Receiver"].dropna()
-    touches = (set(passers) | set(catchers)) - {"Anonymous"}
-    return len(touches) == n
 
 
 def point_num_players(point):
@@ -86,6 +75,23 @@ def point_num_players(point):
         ]
     )
     return players
+
+
+# On-field scoring ###############################
+
+
+def is_all_touch(point):
+    """Is it an all-touch point?"""
+
+    n = point_num_players(point)
+
+    # How is all-touch defined? Between turns? Or between scores? To keep it
+    # simple, let's say between scores. The idea is to see if everyone on the
+    # field is involved. So, between scores is fine!
+    passers = point["Passer"].dropna()
+    catchers = point["Receiver"].dropna()
+    touches = (set(passers) | set(catchers)) - {"Anonymous"}
+    return len(touches) == n
 
 
 def has_no_turnovers(point):
