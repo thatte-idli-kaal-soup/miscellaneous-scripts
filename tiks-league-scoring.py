@@ -136,7 +136,9 @@ def passes_by_gender(data):
         passer, catcher = row
         return "{}-{}".format(player_gender(passer), player_gender(catcher))
 
-    catches = data[data["Action"] == "Catch"]  # FIXME: Only completions?
+    offense = data[data["Event Type"] == "Offense"]
+    # FIXME: Include drops?
+    catches = offense[offense["Action"].str.startswith(("Catch", "Goal"))]
     gender_passes = catches[["Passer", "Receiver"]].apply(f, axis=1)
     return Counter(gender_passes)
 
