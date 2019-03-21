@@ -27,9 +27,7 @@ import pandas as pd
 
 def parse_match(url):
     data = pd.read_csv(url)
-    points = data.groupby(
-        ["Our Score - End of Point", "Their Score - End of Point"]
-    )
+    points = iter_points(data)
     additional_points = 0
     for score, point in points:
         if is_all_touch(point):
@@ -42,6 +40,20 @@ def parse_match(url):
             additional_points += 0.5
 
     print(additional_points)
+    print(score)
+
+
+def iter_points(data):
+    """Iterator over match score and points tuples"""
+    points = data.groupby(
+        ["Our Score - End of Point", "Their Score - End of Point"]
+    )
+    for score, point in points:
+        if point["Action"].iloc[-1] != "Goal":
+            idx = point[point["Action"] == "Goal"].index[0]
+            point = point.loc[:idx]
+        assert point["Action"].iloc[-1] == "Goal"
+        yield score, point
 
 
 def is_all_touch(point):
