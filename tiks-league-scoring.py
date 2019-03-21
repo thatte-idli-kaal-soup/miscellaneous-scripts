@@ -174,6 +174,10 @@ def longest_no_turn_score(points):
 
 
 def off_field_scoring(data_1, data_2):
+    name_1 = data_2["Opponent"].iloc[0]
+    name_2 = data_1["Opponent"].iloc[0]
+    off_field_scores = {name_1: 0, name_2: 0}
+
     x = passes_by_gender(data_1)
     y = passes_by_gender(data_2)
     # FIXME: How do we score?
@@ -182,10 +186,18 @@ def off_field_scoring(data_1, data_2):
     y = pullers(data_2)
     # FIXME: Take into account total number of pulls made by each team?
     print(x, y)
-    x = longest_no_turn_score(iter_points(data_1))
-    y = longest_no_turn_score(iter_points(data_2))
-    print(x, y)
-    return
+
+    pass_count_1 = longest_no_turn_score(iter_points(data_1))
+    pass_count_2 = longest_no_turn_score(iter_points(data_2))
+    if pass_count_1 > pass_count_2:
+        off_field_scores[name_1] += 2.5
+    elif pass_count_2 > pass_count_1:
+        off_field_scores[name_2] += 2.5
+    else:
+        pass
+
+    print(off_field_scores)
+    return off_field_scores
 
 
 # Main  ################################################################
