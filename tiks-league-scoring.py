@@ -25,9 +25,7 @@ On field scoring(Counts towards goal tally, per game)
 import pandas as pd
 
 
-def parse_match(url):
-    data = pd.read_csv(url)
-    points = iter_points(data)
+def on_field_score_team(points):
     additional_points = 0
     for score, point in points:
         if is_all_touch(point):
@@ -39,8 +37,8 @@ def parse_match(url):
         if has_no_turnovers(point):
             additional_points += 0.5
 
-    print(additional_points)
-    print(score)
+    ours, theirs = score
+    return (ours, additional_points)
 
 
 # Data-helpers ############################################
@@ -112,10 +110,17 @@ def is_perfect_score(point):
     return num_touches == len(passers) == len(catchers)
 
 
-def main(url):
-    parse_match()
+def main(game_urls):
+    game_data = [pd.read_csv(url) for url in game_urls]
+    data_1, data_2 = game_data
+    score_1 = on_field_score_team(iter_points(data_1))
+    score_2 = on_field_score_team(iter_points(data_2))
+    name_1 = data_2["Opponent"].iloc[0]
+    name_2 = data_1["Opponent"].iloc[0]
+    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
+    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
 
 
 if __name__ == "__main__":
-    url = "/tmp/stats.csv"
-    main()
+    urls = ["/tmp/stats.csv", "/tmp/stats-1.csv"]
+    main(urls)
