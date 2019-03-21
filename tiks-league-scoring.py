@@ -137,8 +137,10 @@ def passes_by_gender(data):
         return "{}-{}".format(player_gender(passer), player_gender(catcher))
 
     offense = data[data["Event Type"] == "Offense"]
-    # FIXME: Include drops?
-    catches = offense[offense["Action"].str.startswith(("Catch", "Goal"))]
+    # Included unsuccessful passes too, since we are looking for the intent to pass
+    catches = offense[
+        offense["Action"].str.startswith(("Catch", "Goal", "Drop"))
+    ]
     gender_passes = catches[["Passer", "Receiver"]].apply(f, axis=1)
     return Counter(gender_passes)
 
