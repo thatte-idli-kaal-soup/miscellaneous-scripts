@@ -22,7 +22,10 @@ On field scoring(Counts towards goal tally, per game)
 
 """
 
-from collections import Counter
+from argparse import ArgumentParser
+from collections import Counter, defaultdict
+import glob
+from os.path import basename, join, splitext
 
 import pandas as pd
 
@@ -188,6 +191,20 @@ def off_field_scoring(data_1, data_2):
 # Main  ################################################################
 
 
+def find_match_data(root_dir):
+    csv_files = glob.glob(join(root_dir, "*.csv"))
+    matches = defaultdict(list)
+    for path in csv_files:
+        name = splitext(basename(path))[0]
+        key = tuple(sorted(name.split("-")))
+        matches[key].append(path)
+    for match in matches.values():
+        if len(match) < 2:
+            print("Skipping match: {}".format(match))
+            continue
+        yield match
+
+
 def main(game_urls):
     game_data = [pd.read_csv(url) for url in game_urls]
     data_1, data_2 = game_data
@@ -198,8 +215,14 @@ def main(game_urls):
     print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
     print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
     off_field_scoring(data_1, data_2)
+    print("*" * 40)
 
 
 if __name__ == "__main__":
-    urls = ["/tmp/stats.csv", "/tmp/stats-1.csv"]
-    main(urls)
+    parser = ArgumentParser(prog=__file__, usage=__doc__)
+    parser.add_argument("data_dir", help="Directory with .csv data")
+    args = parser.parse_args()
+    matches = find_match_data(args.data_dir)
+    for urls in matches:
+        print(urls)
+        main(urls)
