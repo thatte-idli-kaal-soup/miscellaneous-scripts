@@ -30,6 +30,7 @@ from pprint import pprint
 
 import pandas as pd
 
+from gender import FEMALE, ALL
 
 # Data-helpers #########################################################
 
@@ -61,6 +62,25 @@ def iter_points(data):
         yield score, point
 
 
+def player_gender(name):
+    assert name in ALL, "{} not listed".format(name)
+    return "F" if name in FEMALE else "M"
+
+
+def point_gender_ratio(point):
+    """Get gender ratio for a point.
+
+    NOTE: This is also computed per point, intentionally! We allow changing
+    gender ratios based on squad size.
+
+    """
+
+    players = point_players(point)
+    ratio = Counter(map(player_gender, players))
+    ratio = tuple(count for name, count in sorted(ratio.items()))
+    return ratio
+
+
 def point_num_players(point):
     """Get number of players playing in a point.
 
@@ -77,6 +97,13 @@ def point_num_players(point):
         ]
     )
     return players
+
+
+def point_players(point):
+    n = point_num_players(point)
+    columns = point.select(lambda x: x.startswith("Player"), axis=1)
+    players = columns.iloc[0][:n]
+    return set(players)
 
 
 def read_game_data(game_urls):
@@ -162,11 +189,6 @@ def on_field_score_game(game_data):
 
 def passes_by_gender(data):
     """Return count of passes by gender (M-M, M-F, F-M, F-F)."""
-    from gender import FEMALE, ALL
-
-    def player_gender(name):
-        assert name in ALL, "{} not listed".format(name)
-        return "F" if name in FEMALE else "M"
 
     def f(row):
         passer, catcher = row
@@ -179,6 +201,34 @@ def passes_by_gender(data):
     ]
     gender_passes = passes[["Passer", "Receiver"]].apply(f, axis=1)
     return Counter(gender_passes)
+
+
+def expected_passes_count(data):
+    """Return the count of expected passes by gender."""
+
+    gender_ratio_passes = defaultdict(lambda: 0)
+    expected_passes = defaultdict(lambda: 0)
+
+    for score, point in iter_points(data):
+        offense = point[point["Event Type"] == "Offense"]
+        passes = offense[
+            offense["Action"].str.startswith(("Catch", "Goal", "Drop"))
+        ]
+        g_ratio = point_gender_ratio(point)
+        gender_ratio_passes[g_ratio] += len(passes)
+
+    for (f, m), count in gender_ratio_passes.items():
+        n = m + f
+        m_m = (m / n) * ((m - 1) / (n - 1)) * count
+        m_f = (m / n) * (f / (n - 1)) * count
+        f_m = (f / n) * (m / (n - 1)) * count
+        f_f = (f / n) * ((f - 1) / (n - 1)) * count
+        expected_passes["M-M"] += m_m
+        expected_passes["M-F"] += m_f
+        expected_passes["F-M"] += f_m
+        expected_passes["F-F"] += f_f
+
+    return expected_passes
 
 
 def pullers(data):
@@ -213,6 +263,7 @@ def off_field_scoring(tournament_data):
 
     tournament_pullers = defaultdict(set)
     tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
+    expected_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     tournament_longest_o_point = defaultdict(lambda: 0)
     off_field_scores = defaultdict(lambda: 0)
 
@@ -221,6 +272,10 @@ def off_field_scoring(tournament_data):
             # Passes by Gender
             for player_genders, count in passes_by_gender(game_data).items():
                 tournament_passes_by_gender[team][player_genders] += count
+
+            # Expected passes by Gender
+            for genders, count in expected_passes_count(game_data).items():
+                expected_passes_by_gender[team][genders] += count
 
             # Pullers
             tournament_pullers[team].update(pullers(game_data))
@@ -231,7 +286,15 @@ def off_field_scoring(tournament_data):
             tournament_longest_o_point[team] = max(score, previous)
 
     # FIXME: How do we score?
-    pprint(dict(tournament_passes_by_gender))
+    pprint(
+        {
+            key: dict(value)
+            for key, value in tournament_passes_by_gender.items()
+        }
+    )
+    pprint(
+        {key: dict(value) for key, value in expected_passes_by_gender.items()}
+    )
 
     # FIXME: Take into account total number of pulls made by each team?
     pprint(dict(tournament_pullers))
