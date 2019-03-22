@@ -214,6 +214,7 @@ def off_field_scoring(tournament_data):
     tournament_pullers = defaultdict(set)
     tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     tournament_longest_o_point = defaultdict(lambda: 0)
+    off_field_scores = defaultdict(lambda: 0)
 
     for team, games in tournament_data.items():
         for game_data in games:
@@ -230,12 +231,16 @@ def off_field_scoring(tournament_data):
             tournament_longest_o_point[team] = max(score, previous)
 
     # FIXME: How do we score?
-    pprint(tournament_passes_by_gender)
+    pprint(dict(tournament_passes_by_gender))
 
     # FIXME: Take into account total number of pulls made by each team?
-    pprint(tournament_pullers)
+    pprint(dict(tournament_pullers))
 
-    pprint(tournament_longest_o_point)
+    pprint(dict(tournament_longest_o_point))
+    name = max(
+        tournament_longest_o_point, key=lambda x: tournament_longest_o_point[x]
+    )
+    off_field_scores[name] += 2.5
 
 
 # Main  ################################################################
