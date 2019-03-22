@@ -33,6 +33,20 @@ import pandas as pd
 # Data-helpers #########################################################
 
 
+def find_match_data(data_dir):
+    csv_files = glob.glob(join(data_dir, "*.csv"))
+    matches = defaultdict(list)
+    for path in csv_files:
+        name = splitext(basename(path))[0]
+        key = tuple(sorted(name.split("-")))
+        matches[key].append(path)
+    for match in matches.values():
+        if len(match) < 2:
+            print("Duplicating URL for match: {}".format(match))
+            match = match * 2
+        yield match
+
+
 def iter_points(data):
     """Iterator over match score and points tuples"""
     points = data.groupby(
@@ -212,20 +226,6 @@ def off_field_scoring(data_1, data_2):
 
 
 # Main  ################################################################
-
-
-def find_match_data(data_dir):
-    csv_files = glob.glob(join(data_dir, "*.csv"))
-    matches = defaultdict(list)
-    for path in csv_files:
-        name = splitext(basename(path))[0]
-        key = tuple(sorted(name.split("-")))
-        matches[key].append(path)
-    for match in matches.values():
-        if len(match) < 2:
-            print("Duplicating URL for match: {}".format(match))
-            match = match * 2
-        yield match
 
 
 def main(data_dir):
