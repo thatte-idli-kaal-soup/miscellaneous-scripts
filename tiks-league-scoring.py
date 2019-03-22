@@ -101,7 +101,8 @@ def point_num_players(point):
 
 def point_players(point):
     n = point_num_players(point)
-    columns = point.select(lambda x: x.startswith("Player"), axis=1)
+    select_columns = point.columns.map(lambda x: x.startswith("Player "))
+    columns = point.loc[:, select_columns]
     players = columns.iloc[0][:n]
     return set(players)
 
