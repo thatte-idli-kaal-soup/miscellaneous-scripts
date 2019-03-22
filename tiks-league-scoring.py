@@ -259,6 +259,49 @@ def longest_no_turn_score(data):
     )
 
 
+def d_pass_count(defense, offense):
+    d_actions = list(defense[defense["Event Type"] == "Defense"]["Action"])
+    d_turns = [act for act in d_actions if act.startswith(("Throwaway", "D"))]
+    o_turns = offense[offense["Event Type"] == "Offense"][
+        offense["Action"].str.startswith(("Throwaway", "Drop"))
+    ]
+    assert len(d_turns) == len(o_turns), "Something is wrong!"
+
+    count = pd.np.inf
+    for i, action in enumerate(d_turns):
+        if action == "D":
+            end = o_turns.index[i]
+            o_defenses = offense.loc[:end][offense["Event Type"] == "Defense"]
+            start = (
+                o_defenses.index[-1] + 1
+                if len(o_defenses.index) > 0
+                else offense.index[0]
+            )
+            count = min(count, end - start + 1)
+    return count
+
+
+def fastest_d(game_data):
+    """Returns the fastest D for each team in a game."""
+
+    passes_before_d = defaultdict(lambda: pd.np.inf)
+    names = [name for name, _ in game_data]
+    points_1 = [point for _, point in iter_points(game_data[0][1])]
+    points_2 = [point for _, point in iter_points(game_data[1][1])]
+    points = zip(points_1, points_2)
+    for point in points:
+        for i, name in enumerate(names):
+            defense, offense = point if i == 0 else point[::-1]
+            count = d_pass_count(defense, offense)
+            if count is not None:
+                previous = passes_before_d[name]
+                passes_before_d[name] = (
+                    count if previous == 0 else min(count, previous)
+                )
+
+    return passes_before_d
+
+
 def off_field_scoring(tournament_data):
     """Compute the off-field scores for the whole tournament."""
 
@@ -266,6 +309,7 @@ def off_field_scoring(tournament_data):
     tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     expected_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     tournament_longest_o_point = defaultdict(lambda: 0)
+    tournament_d_pass_count = defaultdict(lambda: pd.np.inf)
 
     for game_id, game in tournament_data.items():
         for team, team_data in game:
@@ -285,6 +329,10 @@ def off_field_scoring(tournament_data):
             previous = tournament_longest_o_point[team]
             tournament_longest_o_point[team] = max(score, previous)
 
+        for team, d_pass_count in fastest_d(game).items():
+            previous = tournament_d_pass_count[team]
+            tournament_d_pass_count[team] = min(previous, d_pass_count)
+
     # FIXME: How do we score?
     for team, pass_data in tournament_passes_by_gender.items():
         pprint(team)
@@ -301,6 +349,8 @@ def off_field_scoring(tournament_data):
             reverse=True,
         )
     )
+
+    pprint(dict(tournament_d_pass_count))
 
 
 # Main  ################################################################
