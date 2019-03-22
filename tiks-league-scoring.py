@@ -124,6 +124,17 @@ def on_field_score_team(points):
     return (ours, additional_points)
 
 
+def on_field_score_game(game_urls):
+    game_data = [pd.read_csv(url) for url in game_urls]
+    data_1, data_2 = game_data
+    score_1 = on_field_score_team(iter_points(data_1))
+    score_2 = on_field_score_team(iter_points(data_2))
+    name_1 = data_2["Opponent"].iloc[0]
+    name_2 = data_1["Opponent"].iloc[0]
+    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
+    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
+
+
 # Off-field scoring ####################################################
 
 
@@ -203,8 +214,8 @@ def off_field_scoring(data_1, data_2):
 # Main  ################################################################
 
 
-def find_match_data(root_dir):
-    csv_files = glob.glob(join(root_dir, "*.csv"))
+def find_match_data(data_dir):
+    csv_files = glob.glob(join(data_dir, "*.csv"))
     matches = defaultdict(list)
     for path in csv_files:
         name = splitext(basename(path))[0]
@@ -217,24 +228,16 @@ def find_match_data(root_dir):
         yield match
 
 
-def main(game_urls):
-    game_data = [pd.read_csv(url) for url in game_urls]
-    data_1, data_2 = game_data
-    score_1 = on_field_score_team(iter_points(data_1))
-    score_2 = on_field_score_team(iter_points(data_2))
-    name_1 = data_2["Opponent"].iloc[0]
-    name_2 = data_1["Opponent"].iloc[0]
-    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
-    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
-    off_field_scoring(data_1, data_2)
-    print("*" * 40)
+def main(data_dir):
+    matches = find_match_data(data_dir)
+    for urls in matches:
+        print(urls)
+        on_field_score_game(urls)
+        print("*" * 40)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(prog=__file__, usage=__doc__)
     parser.add_argument("data_dir", help="Directory with .csv data")
     args = parser.parse_args()
-    matches = find_match_data(args.data_dir)
-    for urls in matches:
-        print(urls)
-        main(urls)
+    main(args.data_dir)
