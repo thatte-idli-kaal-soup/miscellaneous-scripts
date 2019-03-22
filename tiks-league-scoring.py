@@ -42,11 +42,11 @@ def find_match_data(data_dir):
         name = splitext(basename(path))[0]
         key = tuple(sorted(name.split("-")))
         matches[key].append(path)
-    for match in matches.values():
+    for game_id, match in matches.items():
         if len(match) < 2:
             print("Skipping match: {}".format(match))
             continue
-        yield match
+        yield game_id, match
 
 
 def iter_points(data):
@@ -268,21 +268,21 @@ def off_field_scoring(tournament_data):
     tournament_longest_o_point = defaultdict(lambda: 0)
     off_field_scores = defaultdict(lambda: 0)
 
-    for team, games in tournament_data.items():
-        for game_data in games:
+    for game_id, game in tournament_data.items():
+        for team, team_data in game:
             # Passes by Gender
-            for player_genders, count in passes_by_gender(game_data).items():
+            for player_genders, count in passes_by_gender(team_data).items():
                 tournament_passes_by_gender[team][player_genders] += count
 
             # Expected passes by Gender
-            for genders, count in expected_passes_count(game_data).items():
+            for genders, count in expected_passes_count(team_data).items():
                 expected_passes_by_gender[team][genders] += count
 
             # Pullers
-            tournament_pullers[team].update(pullers(game_data))
+            tournament_pullers[team].update(pullers(team_data))
 
             # Longest no turn scores
-            score = longest_no_turn_score(game_data)
+            score = longest_no_turn_score(team_data)
             previous = tournament_longest_o_point[team]
             tournament_longest_o_point[team] = max(score, previous)
 
@@ -308,12 +308,12 @@ def off_field_scoring(tournament_data):
 def main(data_dir):
     matches = find_match_data(data_dir)
     tournament_data = defaultdict(list)
-    for urls in matches:
+    for game_id, urls in matches:
         game_data = read_game_data(urls)
         on_field_score_game(game_data)
         print("*" * 40)
         for team, data in game_data.items():
-            tournament_data[team].append(data)
+            tournament_data[game_id].append((team, data))
     off_field_scoring(tournament_data)
 
 
