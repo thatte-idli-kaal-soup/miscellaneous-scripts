@@ -26,6 +26,7 @@ from argparse import ArgumentParser
 from collections import Counter, defaultdict
 import glob
 from os.path import basename, join, splitext
+from pprint import pprint
 
 import pandas as pd
 
@@ -201,35 +202,40 @@ def no_turn_score_pass_count(point):
     return count
 
 
-def longest_no_turn_score(points):
-    return max(no_turn_score_pass_count(point) for _, point in points)
+def longest_no_turn_score(data):
+    return max(
+        no_turn_score_pass_count(point) for _, point in iter_points(data)
+    )
 
 
-def off_field_scoring(data_1, data_2):
-    name_1 = data_2["Opponent"].iloc[0]
-    name_2 = data_1["Opponent"].iloc[0]
-    off_field_scores = {name_1: 0, name_2: 0}
+def off_field_scoring(tournament_data):
+    """Compute the off-field scores for the whole tournament."""
 
-    x = passes_by_gender(data_1)
-    y = passes_by_gender(data_2)
+    tournament_pullers = defaultdict(set)
+    tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
+    tournament_longest_o_point = defaultdict(lambda: 0)
+
+    for team, games in tournament_data.items():
+        for game_data in games:
+            # Passes by Gender
+            for player_genders, count in passes_by_gender(game_data).items():
+                tournament_passes_by_gender[team][player_genders] += count
+
+            # Pullers
+            tournament_pullers[team].update(pullers(game_data))
+
+            # Longest no turn scores
+            score = longest_no_turn_score(game_data)
+            previous = tournament_longest_o_point[team]
+            tournament_longest_o_point[team] = max(score, previous)
+
     # FIXME: How do we score?
-    print(x, y)
-    x = pullers(data_1)
-    y = pullers(data_2)
+    pprint(tournament_passes_by_gender)
+
     # FIXME: Take into account total number of pulls made by each team?
-    print(x, y)
+    pprint(tournament_pullers)
 
-    pass_count_1 = longest_no_turn_score(iter_points(data_1))
-    pass_count_2 = longest_no_turn_score(iter_points(data_2))
-    if pass_count_1 > pass_count_2:
-        off_field_scores[name_1] += 2.5
-    elif pass_count_2 > pass_count_1:
-        off_field_scores[name_2] += 2.5
-    else:
-        pass
-
-    print(off_field_scores)
-    return off_field_scores
+    pprint(tournament_longest_o_point)
 
 
 # Main  ################################################################
@@ -237,10 +243,14 @@ def off_field_scoring(data_1, data_2):
 
 def main(data_dir):
     matches = find_match_data(data_dir)
+    tournament_data = defaultdict(list)
     for urls in matches:
         game_data = read_game_data(urls)
         on_field_score_game(game_data)
         print("*" * 40)
+        for team, data in game_data.items():
+            tournament_data[team].append(data)
+    off_field_scoring(tournament_data)
 
 
 if __name__ == "__main__":
