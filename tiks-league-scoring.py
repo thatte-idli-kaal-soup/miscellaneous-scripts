@@ -266,7 +266,6 @@ def off_field_scoring(tournament_data):
     tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     expected_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
     tournament_longest_o_point = defaultdict(lambda: 0)
-    off_field_scores = defaultdict(lambda: 0)
 
     for game_id, game in tournament_data.items():
         for team, team_data in game:
