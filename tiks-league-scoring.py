@@ -78,6 +78,15 @@ def point_num_players(point):
     return players
 
 
+def read_game_data(game_urls):
+    print(game_urls)
+    game_data = [pd.read_csv(url) for url in game_urls]
+    data_1, data_2 = game_data
+    name_1 = data_2["Opponent"].iloc[0]
+    name_2 = data_1["Opponent"].iloc[0]
+    return {name_1: data_1, name_2: data_2}
+
+
 # On-field scoring #####################################################
 
 
@@ -138,15 +147,13 @@ def on_field_score_team(points):
     return (ours, additional_points)
 
 
-def on_field_score_game(game_urls):
-    game_data = [pd.read_csv(url) for url in game_urls]
-    data_1, data_2 = game_data
-    score_1 = on_field_score_team(iter_points(data_1))
-    score_2 = on_field_score_team(iter_points(data_2))
-    name_1 = data_2["Opponent"].iloc[0]
-    name_2 = data_1["Opponent"].iloc[0]
-    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_1, s=score_1))
-    print("{name}: {s[0]:d} + {s[1]:.1f}".format(name=name_2, s=score_2))
+def on_field_score_game(game_data):
+    scores = {
+        name: on_field_score_team(iter_points(data))
+        for name, data in game_data.items()
+    }
+    for name, score in scores.items():
+        print("{name}: {score[0]} + {score[1]}".format(name=name, score=score))
 
 
 # Off-field scoring ####################################################
@@ -231,8 +238,8 @@ def off_field_scoring(data_1, data_2):
 def main(data_dir):
     matches = find_match_data(data_dir)
     for urls in matches:
-        print(urls)
-        on_field_score_game(urls)
+        game_data = read_game_data(urls)
+        on_field_score_game(game_data)
         print("*" * 40)
 
 
