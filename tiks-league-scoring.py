@@ -295,11 +295,13 @@ def off_field_scoring(tournament_data):
     # FIXME: Take into account total number of pulls made by each team?
     pprint(dict(tournament_pullers))
 
-    pprint(dict(tournament_longest_o_point))
-    name = max(
-        tournament_longest_o_point, key=lambda x: tournament_longest_o_point[x]
+    pprint(
+        sorted(
+            tournament_longest_o_point.items(),
+            key=lambda x: x[1],
+            reverse=True,
+        )
     )
-    off_field_scores[name] += 2.5
 
 
 # Main  ################################################################
