@@ -287,15 +287,10 @@ def off_field_scoring(tournament_data):
             tournament_longest_o_point[team] = max(score, previous)
 
     # FIXME: How do we score?
-    pprint(
-        {
-            key: dict(value)
-            for key, value in tournament_passes_by_gender.items()
-        }
-    )
-    pprint(
-        {key: dict(value) for key, value in expected_passes_by_gender.items()}
-    )
+    for team, pass_data in tournament_passes_by_gender.items():
+        pprint(team)
+        pprint(dict(pass_data))
+        pprint(dict(expected_passes_by_gender[team]))
 
     # FIXME: Take into account total number of pulls made by each team?
     pprint(dict(tournament_pullers))
