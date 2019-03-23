@@ -392,7 +392,7 @@ def main(data_dir):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(prog=__file__, usage=__doc__)
+    parser = ArgumentParser(prog=__file__, usage=__doc__.splitlines()[0])
     parser.add_argument("data_dir", help="Directory with .csv data")
     args = parser.parse_args()
     main(args.data_dir)
