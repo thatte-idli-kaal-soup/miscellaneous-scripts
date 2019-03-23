@@ -27,6 +27,7 @@ from collections import Counter, defaultdict
 import glob
 from os.path import basename, join, splitext
 from pprint import pprint
+from typing import Tuple, List, Generator, Dict  # noqa
 
 import pandas as pd
 
@@ -35,7 +36,9 @@ from gender import FEMALE, ALL
 # Data-helpers #########################################################
 
 
-def find_match_data(data_dir):
+def find_match_data(
+    data_dir: str
+) -> Generator[Tuple[str, List[str]], None, None]:
     """Returns pairs of CSV file paths - one file per each team.
 
     This function assumes that the files are named in the format:
@@ -45,7 +48,7 @@ def find_match_data(data_dir):
 
     """
     csv_files = glob.glob(join(data_dir, "*.csv"))
-    matches = defaultdict(list)
+    matches = defaultdict(list)  # type: Dict[str, List[str]]
     for path in csv_files:
         name = splitext(basename(path))[0]
         key = "-".join(tuple(sorted(name.split("-"))))
