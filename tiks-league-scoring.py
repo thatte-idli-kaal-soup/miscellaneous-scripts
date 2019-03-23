@@ -350,14 +350,20 @@ def off_field_scoring(tournament_data):
             tournament_d_pass_count[team] = min(previous, d_pass_count)
 
     # FIXME: How do we score?
+    print(
+        "Division of passes by gender for each team: "
+        "(followed by expected distribution)"
+    )
     for team, pass_data in tournament_passes_by_gender.items():
         pprint(team)
         pprint(dict(pass_data))
         pprint(dict(expected_passes_by_gender[team]))
 
     # FIXME: Take into account total number of pulls made by each team?
+    print("Pullers by team:")
     pprint(dict(tournament_pullers))
 
+    print("Longest number of passes before a score:")
     pprint(
         sorted(
             tournament_longest_o_point.items(),
@@ -366,6 +372,7 @@ def off_field_scoring(tournament_data):
         )
     )
 
+    print("Number of passes before the team got a D:")
     pprint(dict(tournament_d_pass_count))
 
 
