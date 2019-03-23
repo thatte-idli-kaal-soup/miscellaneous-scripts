@@ -61,7 +61,7 @@ def find_match_data(
         yield game_id, match
 
 
-def iter_points(data: DF) -> Generator[Tuple[Tuple[int], DF], None, None]:
+def iter_points(data: DF) -> Generator[Tuple[Tuple[int, int], DF], None, None]:
     """Iterator over match score and points tuples"""
     points = data.groupby(
         ["Our Score - End of Point", "Their Score - End of Point"]
@@ -132,7 +132,7 @@ def read_game_data(game_urls: List[str]) -> Dict[str, DF]:
 # On-field scoring #####################################################
 
 
-def is_all_touch(point):
+def is_all_touch(point: DF) -> bool:
     """Is it an all-touch point?"""
 
     n = point_num_players(point)
@@ -146,19 +146,19 @@ def is_all_touch(point):
     return len(touches) == n
 
 
-def has_no_turnovers(point):
+def has_no_turnovers(point: DF) -> bool:
     """Check if the team remains on offense since they first got on offense."""
     offense = point[point["Event Type"] == "Offense"]
     idx = offense.index
-    return (
+    return bool(
         # Team keeps possession till the end
-        point.index.max() == idx.max()
+        (point.index.max() == idx.max())
         # Team didn't lose possession in between, once on Offense
-        and idx.min() + len(offense) == idx.max() + 1
+        and ((idx.min() + len(offense)) == (idx.max() + 1))
     )
 
 
-def is_perfect_score(point):
+def is_perfect_score(point: DF) -> bool:
     """Check if all players have touched the disc, and exactly once!"""
 
     n = point_num_players(point)
@@ -169,12 +169,14 @@ def is_perfect_score(point):
     return num_touches == len(passers) == len(catchers)
 
 
-def on_field_score_team(points):
+def on_field_score_team(
+    points: Generator[Tuple[Tuple[int, int], DF], None, None]
+) -> Tuple[int, float]:
     """Compute on-field score of a team.
 
     Return (Goals, Additional Points)
     """
-    additional_points = 0
+    additional_points = 0.0
     for score, point in points:
         if is_all_touch(point):
             additional_points += 0.5
@@ -189,7 +191,7 @@ def on_field_score_team(points):
     return (ours, additional_points)
 
 
-def on_field_score_game(game_data):
+def on_field_score_game(game_data: Dict[str, DF]) -> None:
     scores = {
         name: on_field_score_team(iter_points(data))
         for name, data in game_data.items()
