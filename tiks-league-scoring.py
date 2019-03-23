@@ -27,14 +27,15 @@ from collections import Counter, defaultdict
 import glob
 from os.path import basename, join, splitext
 from pprint import pprint
-from typing import (
+from typing import (  # noqa
     Tuple,
     List,
     Generator,
     Dict,
     Set,
     Counter as TCounter,
-)  # noqa
+    Any,
+)
 
 import pandas as pd
 from pandas import DataFrame as DF, Series
@@ -332,7 +333,9 @@ def fastest_d(game_data: List[Tuple[str, DF]]) -> Dict[str, int]:
     ]
     points = zip(*team_wise_points)
 
-    passes_before_d = defaultdict(lambda: pd.np.inf)  # type: Dict[str, int]
+    passes_before_d = defaultdict(
+        lambda: pd.np.inf
+    )  # type: Dict[str, pd.np.float]
     for point in points:
         for name, count in zip(names, d_pass_count(*point)):
             passes_before_d[name] = min(count, passes_before_d[name])
@@ -355,7 +358,7 @@ def off_field_scoring(
     tournament_longest_o_point = defaultdict(lambda: 0)  # type: Dict[str, int]
     tournament_d_pass_count = defaultdict(
         lambda: pd.np.inf
-    )  # type: Dict[str, int]
+    )  # type: Dict[str, pd.np.float]
 
     for game_id, game in tournament_data.items():
         for team, team_data in game:
