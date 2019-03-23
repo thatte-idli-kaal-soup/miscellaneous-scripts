@@ -259,26 +259,43 @@ def longest_no_turn_score(data):
     )
 
 
-def d_pass_count(defense, offense):
-    d_actions = list(defense[defense["Event Type"] == "Defense"]["Action"])
-    d_turns = [act for act in d_actions if act.startswith(("Throwaway", "D"))]
-    o_turns = offense[offense["Event Type"] == "Offense"][
-        offense["Action"].str.startswith(("Throwaway", "Drop"))
-    ]
-    assert len(d_turns) == len(o_turns), "Something is wrong!"
+def split_posession_change(point):
+    """Split a point by posession change.
 
-    count = pd.np.inf
-    for i, action in enumerate(d_turns):
-        if action == "D":
-            end = o_turns.index[i]
-            o_defenses = offense.loc[:end][offense["Event Type"] == "Defense"]
-            start = (
-                o_defenses.index[-1] + 1
-                if len(o_defenses.index) > 0
-                else offense.index[0]
-            )
-            count = min(count, end - start + 1)
-    return count
+    Events which happened between two turnovers are grouped together.
+
+    """
+    change_events = ("Throwaway", "D", "Drop", "Goal")
+    changes = point[point["Action"].str.startswith(change_events)]
+    start = [point.index[0]] + list(changes.index + 1)
+    end = changes.index
+    split_point = [point.loc[x:y] for x, y in zip(start, end)]
+    return split_point
+
+
+def d_pass_count(team_a, team_b):
+    """Return number of passes before which each team got a D.
+
+    Returns a tuple (count_a, count_b) where count_a is the number of passes
+    Team B had before Team A got a D.
+
+    """
+    count_a = count_b = pd.np.inf
+
+    split_point = zip(
+        split_posession_change(team_a), split_posession_change(team_b)
+    )
+    for A, B in split_point:
+        if len(A) == 1 and A.Action.iloc[0] == "D":
+            count_a = min(count_a, len(B) - 1)
+
+        elif len(B) == 1 and B.Action.iloc[0] == "D":
+            count_b = min(count_b, len(A) - 1)
+
+        else:
+            continue
+
+    return count_a, count_b
 
 
 def fastest_d(game_data):
@@ -295,9 +312,7 @@ def fastest_d(game_data):
 
     passes_before_d = defaultdict(lambda: pd.np.inf)
     for point in points:
-        for i, name in enumerate(names):
-            t1, t2 = point
-            count = d_pass_count(t1, t2) if i == 0 else d_pass_count(t2, t1)
+        for name, count in zip(names, d_pass_count(*point)):
             passes_before_d[name] = min(count, passes_before_d[name])
 
     return passes_before_d
