@@ -74,7 +74,7 @@ def iter_points(data: DF) -> Generator[Tuple[Tuple[int], DF], None, None]:
         yield score, point
 
 
-def player_gender(name):
+def player_gender(name: str) -> str:
     assert name in ALL, "{} not listed".format(name)
     return "F" if name in FEMALE else "M"
 
