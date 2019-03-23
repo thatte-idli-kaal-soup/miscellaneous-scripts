@@ -409,9 +409,11 @@ def off_field_scoring(
 # Main  ################################################################
 
 
-def main(data_dir):
+def main(data_dir: str) -> None:
     matches = find_match_data(data_dir)
-    tournament_data = defaultdict(list)
+    tournament_data = defaultdict(
+        list
+    )  # type: Dict[str, List[Tuple[str, DF]]]
     for game_id, urls in matches:
         game_data = read_game_data(urls)
         on_field_score_game(game_data)
