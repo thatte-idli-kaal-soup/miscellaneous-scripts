@@ -48,7 +48,7 @@ def find_match_data(data_dir):
     matches = defaultdict(list)
     for path in csv_files:
         name = splitext(basename(path))[0]
-        key = tuple(sorted(name.split("-")))
+        key = "-".join(tuple(sorted(name.split("-"))))
         matches[key].append(path)
     for game_id, match in matches.items():
         if len(match) < 2:
