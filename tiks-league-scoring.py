@@ -284,20 +284,21 @@ def d_pass_count(defense, offense):
 def fastest_d(game_data):
     """Returns the fastest D for each team in a game."""
 
-    passes_before_d = defaultdict(lambda: pd.np.inf)
+    names = []
+    points = []
     names = [name for name, _ in game_data]
-    points_1 = [point for _, point in iter_points(game_data[0][1])]
-    points_2 = [point for _, point in iter_points(game_data[1][1])]
-    points = zip(points_1, points_2)
+    points = [
+        [point for _, point in iter_points(team_data)]
+        for _, team_data in game_data
+    ]
+    points = zip(*points)
+
+    passes_before_d = defaultdict(lambda: pd.np.inf)
     for point in points:
         for i, name in enumerate(names):
-            defense, offense = point if i == 0 else point[::-1]
-            count = d_pass_count(defense, offense)
-            if count is not None:
-                previous = passes_before_d[name]
-                passes_before_d[name] = (
-                    count if previous == 0 else min(count, previous)
-                )
+            t1, t2 = point
+            count = d_pass_count(t1, t2) if i == 0 else d_pass_count(t2, t1)
+            passes_before_d[name] = min(count, passes_before_d[name])
 
     return passes_before_d
 
