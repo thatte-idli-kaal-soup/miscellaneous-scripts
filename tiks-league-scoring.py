@@ -88,8 +88,8 @@ def point_gender_ratio(point):
     """
 
     players = point_players(point)
-    ratio = Counter(map(player_gender, players))
-    ratio = tuple(count for name, count in sorted(ratio.items()))
+    counts = Counter(map(player_gender, players))
+    ratio = tuple(count for name, count in sorted(counts.items()))
     return ratio
 
 
