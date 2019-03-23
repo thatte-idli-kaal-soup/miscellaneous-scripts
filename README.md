@@ -1,6 +1,6 @@
 # Miscellaneous Scripts
 
-Misellaneous scripts to help manage activities for [[http://indiaultimate.org/t/thatte-idli-kaal-soup-1][Thatte Idli Kaal Soup]]
+Misellaneous scripts to help manage activities for [Thatte Idli Kaal Soup](http://indiaultimate.org/t/thatte-idli-kaal-soup-1)
 
 Other Ultimate Frisbee teams in India may find some code that is useful
 
