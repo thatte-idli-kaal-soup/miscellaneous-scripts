@@ -79,7 +79,7 @@ def player_gender(name: str) -> str:
     return "F" if name in FEMALE else "M"
 
 
-def point_gender_ratio(point):
+def point_gender_ratio(point: DF) -> Tuple[int, int]:
     """Get gender ratio for a point.
 
     NOTE: This is also computed per point, intentionally! We allow changing
@@ -89,8 +89,8 @@ def point_gender_ratio(point):
 
     players = point_players(point)
     counts = Counter(map(player_gender, players))
-    ratio = tuple(count for name, count in sorted(counts.items()))
-    return ratio
+    ratio = [c for _, c in sorted(counts.items())]
+    return ratio[0], ratio[1]
 
 
 def point_num_players(point: DF) -> int:
