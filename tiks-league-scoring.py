@@ -316,14 +316,12 @@ def d_pass_count(team_a, team_b):
 def fastest_d(game_data):
     """Returns the fastest D for each team in a game."""
 
-    names = []
-    points = []
     names = [name for name, _ in game_data]
-    points = [
+    team_wise_points = [
         [point for _, point in iter_points(team_data)]
         for _, team_data in game_data
     ]
-    points = zip(*points)
+    points = zip(*team_wise_points)
 
     passes_before_d = defaultdict(lambda: pd.np.inf)
     for point in points:
