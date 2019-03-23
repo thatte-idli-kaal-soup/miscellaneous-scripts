@@ -36,6 +36,14 @@ from gender import FEMALE, ALL
 
 
 def find_match_data(data_dir):
+    """Returns pairs of CSV file paths - one file per each team.
+
+    This function assumes that the files are named in the format:
+    `<team1>-<team2>-<game-id>.csv` and `<team2>-<team1>-<game-id>.csv`.
+
+    If a match has only one file, the match is skipped.
+
+    """
     csv_files = glob.glob(join(data_dir, "*.csv"))
     matches = defaultdict(list)
     for path in csv_files:
@@ -100,6 +108,7 @@ def point_num_players(point):
 
 
 def point_players(point):
+    """Return the names of players who played a point."""
     n = point_num_players(point)
     select_columns = point.columns.map(lambda x: x.startswith("Player "))
     columns = point.loc[:, select_columns]
@@ -108,7 +117,7 @@ def point_players(point):
 
 
 def read_game_data(game_urls):
-    print(game_urls)
+    """Read the CSV file pair for the match and a data dict."""
     game_data = [pd.read_csv(url) for url in game_urls]
     data_1, data_2 = game_data
     name_1 = data_2["Opponent"].iloc[0]
