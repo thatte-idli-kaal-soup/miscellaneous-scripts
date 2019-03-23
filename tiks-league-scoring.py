@@ -30,6 +30,7 @@ from pprint import pprint
 from typing import Tuple, List, Generator, Dict  # noqa
 
 import pandas as pd
+from pandas import DataFrame as DF
 
 from gender import FEMALE, ALL
 
@@ -60,7 +61,7 @@ def find_match_data(
         yield game_id, match
 
 
-def iter_points(data):
+def iter_points(data: DF) -> Generator[Tuple[Tuple[int], DF], None, None]:
     """Iterator over match score and points tuples"""
     points = data.groupby(
         ["Our Score - End of Point", "Their Score - End of Point"]
