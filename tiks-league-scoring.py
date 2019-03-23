@@ -120,7 +120,7 @@ def point_players(point: DF) -> Set[str]:
     return set(players)
 
 
-def read_game_data(game_urls):
+def read_game_data(game_urls: List[str]) -> Dict[str, DF]:
     """Read the CSV file pair for the match and a data dict."""
     game_data = [pd.read_csv(url) for url in game_urls]
     data_1, data_2 = game_data
