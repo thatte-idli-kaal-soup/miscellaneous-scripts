@@ -27,10 +27,17 @@ from collections import Counter, defaultdict
 import glob
 from os.path import basename, join, splitext
 from pprint import pprint
-from typing import Tuple, List, Generator, Dict, Set  # noqa
+from typing import (
+    Tuple,
+    List,
+    Generator,
+    Dict,
+    Set,
+    Counter as TCounter,
+)  # noqa
 
 import pandas as pd
-from pandas import DataFrame as DF
+from pandas import DataFrame as DF, Series
 
 from gender import FEMALE, ALL
 
@@ -203,10 +210,10 @@ def on_field_score_game(game_data: Dict[str, DF]) -> None:
 # Off-field scoring ####################################################
 
 
-def passes_by_gender(data):
+def passes_by_gender(data: DF) -> TCounter[str]:
     """Return count of passes by gender (M-M, M-F, F-M, F-F)."""
 
-    def f(row):
+    def f(row: Series) -> str:
         passer, catcher = row
         return "{}-{}".format(player_gender(passer), player_gender(catcher))
 
@@ -219,11 +226,13 @@ def passes_by_gender(data):
     return Counter(gender_passes)
 
 
-def expected_passes_count(data):
+def expected_passes_count(data: DF) -> Dict[str, float]:
     """Return the count of expected passes by gender."""
 
-    gender_ratio_passes = defaultdict(lambda: 0)
-    expected_passes = defaultdict(lambda: 0)
+    gender_ratio_passes = defaultdict(
+        lambda: 0
+    )  # type: Dict[Tuple[int, int], float]
+    expected_passes = defaultdict(lambda: 0)  # type: Dict[str, float]
 
     for score, point in iter_points(data):
         offense = point[point["Event Type"] == "Offense"]
@@ -247,12 +256,12 @@ def expected_passes_count(data):
     return expected_passes
 
 
-def pullers(data):
+def pullers(data: DF) -> Set[str]:
     # Pull or PullOb for out-of-bounds
     return set(data[data["Action"].str.startswith("Pull")]["Defender"])
 
 
-def no_turn_score_pass_count(point):
+def no_turn_score_pass_count(point: DF) -> int:
     """Number of passes made before score, without a turnover.
 
     The team could start on O or D. We count number of passes after the team
@@ -268,13 +277,13 @@ def no_turn_score_pass_count(point):
     return count
 
 
-def longest_no_turn_score(data):
+def longest_no_turn_score(data: DF) -> int:
     return max(
         no_turn_score_pass_count(point) for _, point in iter_points(data)
     )
 
 
-def split_posession_change(point):
+def split_posession_change(point: DF) -> List[DF]:
     """Split a point by posession change.
 
     Events which happened between two turnovers are grouped together.
@@ -288,7 +297,7 @@ def split_posession_change(point):
     return split_point
 
 
-def d_pass_count(team_a, team_b):
+def d_pass_count(team_a: DF, team_b: DF) -> Tuple[int, int]:
     """Return number of passes before which each team got a D.
 
     Returns a tuple (count_a, count_b) where count_a is the number of passes
@@ -313,7 +322,7 @@ def d_pass_count(team_a, team_b):
     return count_a, count_b
 
 
-def fastest_d(game_data):
+def fastest_d(game_data: List[Tuple[str, DF]]) -> Dict[str, int]:
     """Returns the fastest D for each team in a game."""
 
     names = [name for name, _ in game_data]
@@ -323,7 +332,7 @@ def fastest_d(game_data):
     ]
     points = zip(*team_wise_points)
 
-    passes_before_d = defaultdict(lambda: pd.np.inf)
+    passes_before_d = defaultdict(lambda: pd.np.inf)  # type: Dict[str, int]
     for point in points:
         for name, count in zip(names, d_pass_count(*point)):
             passes_before_d[name] = min(count, passes_before_d[name])
@@ -331,14 +340,22 @@ def fastest_d(game_data):
     return passes_before_d
 
 
-def off_field_scoring(tournament_data):
+def off_field_scoring(
+    tournament_data: Dict[str, List[Tuple[str, DF]]]
+) -> None:
     """Compute the off-field scores for the whole tournament."""
 
-    tournament_pullers = defaultdict(set)
-    tournament_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
-    expected_passes_by_gender = defaultdict(lambda: defaultdict(lambda: 0))
-    tournament_longest_o_point = defaultdict(lambda: 0)
-    tournament_d_pass_count = defaultdict(lambda: pd.np.inf)
+    tournament_pullers = defaultdict(set)  # type: Dict[str, Set[str]]
+    tournament_passes_by_gender = defaultdict(
+        lambda: defaultdict(lambda: 0)
+    )  # type: Dict[str, Dict[str, int]]
+    expected_passes_by_gender = defaultdict(
+        lambda: defaultdict(lambda: 0)
+    )  # type: Dict[str, Dict[str, float]]
+    tournament_longest_o_point = defaultdict(lambda: 0)  # type: Dict[str, int]
+    tournament_d_pass_count = defaultdict(
+        lambda: pd.np.inf
+    )  # type: Dict[str, int]
 
     for game_id, game in tournament_data.items():
         for team, team_data in game:
@@ -347,8 +364,8 @@ def off_field_scoring(tournament_data):
                 tournament_passes_by_gender[team][player_genders] += count
 
             # Expected passes by Gender
-            for genders, count in expected_passes_count(team_data).items():
-                expected_passes_by_gender[team][genders] += count
+            for genders, e_count in expected_passes_count(team_data).items():
+                expected_passes_by_gender[team][genders] += e_count
 
             # Pullers
             tournament_pullers[team].update(pullers(team_data))
