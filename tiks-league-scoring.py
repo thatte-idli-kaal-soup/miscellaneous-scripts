@@ -27,7 +27,7 @@ from collections import Counter, defaultdict
 import glob
 from os.path import basename, join, splitext
 from pprint import pprint
-from typing import Tuple, List, Generator, Dict  # noqa
+from typing import Tuple, List, Generator, Dict, Set  # noqa
 
 import pandas as pd
 from pandas import DataFrame as DF
@@ -93,7 +93,7 @@ def point_gender_ratio(point):
     return ratio
 
 
-def point_num_players(point):
+def point_num_players(point: DF) -> int:
     """Get number of players playing in a point.
 
     NOTE: This is computed per point, instead of per game, intentionally! We
@@ -111,7 +111,7 @@ def point_num_players(point):
     return players
 
 
-def point_players(point):
+def point_players(point: DF) -> Set[str]:
     """Return the names of players who played a point."""
     n = point_num_players(point)
     select_columns = point.columns.map(lambda x: x.startswith("Player "))
