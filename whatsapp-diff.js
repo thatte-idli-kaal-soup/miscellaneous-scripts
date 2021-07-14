@@ -7,8 +7,8 @@
 
 javascript: void (function () {
     const diff = function (a, b) {
-        const msg = `List of people in ${a.name} but not in ${b.name}`;
         const missing = a.members.filter((name) => !b.members.includes(name));
+        const msg = `List of people in ${a.name} but not in ${b.name}`;
         const names = missing.join('\n');
         const count = `${missing.length} people`;
         console.log(`${msg}\n${names}\n${count}`);
@@ -18,14 +18,13 @@ javascript: void (function () {
     const members = elements[1].textContent.replace(/ /g, '').split(',');
     const group = { name, members };
 
-    if (!window.diffGroups) {
-        window.diffGroups = [];
-        window.diffGroups.push(group);
+    if (!window.firstGroup) {
+        window.firstGroup = group;
         console.log('Captured info for first group');
     } else {
-        const otherGroup = window.diffGroups[0];
-        delete window.diffGroups;
-        diff(group, otherGroup);
-        diff(otherGroup, group);
+        const {firstGroup} = window;
+        delete window.firstGroup;
+        diff(group, firstGroup);
+        diff(firstGroup, group);
     }
 })();
