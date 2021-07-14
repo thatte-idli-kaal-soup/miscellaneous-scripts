@@ -7,14 +7,16 @@
 
 javascript: void (function () {
     var diff = function (a, b) {
-        console.log(`List of people in ${a.name} but not in ${b.name}`);
+        const msg = `List of people in ${a.name} but not in ${b.name}`;
         var missing = [];
         a.members.map(function (name) {
             if (!b.members.includes(name)) {
                 missing.push(name);
             }
         });
-        console.log(missing.join('\n'));
+        const names = missing.join('\n');
+        const count = `${missing.length} people`;
+        console.log(`${msg}\n${names}\n${count}`);
     };
     var elements = document.querySelectorAll('#main span[title]'),
         group_name = elements[0].textContent,
@@ -24,6 +26,7 @@ javascript: void (function () {
     if (!window.diffGroups) {
         window.diffGroups = [];
         window.diffGroups.push(group);
+        console.log('Captured info for first group');
     } else {
         var group_b = window.diffGroups[0];
         window.diffGroups = undefined;
