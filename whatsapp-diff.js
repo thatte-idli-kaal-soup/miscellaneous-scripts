@@ -8,12 +8,7 @@
 javascript: void (function () {
     const diff = function (a, b) {
         const msg = `List of people in ${a.name} but not in ${b.name}`;
-        const missing = [];
-        a.members.map(function (name) {
-            if (!b.members.includes(name)) {
-                missing.push(name);
-            }
-        });
+        const missing = a.members.filter((name) => !b.members.includes(name));
         const names = missing.join('\n');
         const count = `${missing.length} people`;
         console.log(`${msg}\n${names}\n${count}`);
