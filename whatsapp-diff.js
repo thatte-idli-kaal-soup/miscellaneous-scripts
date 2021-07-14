@@ -6,9 +6,9 @@
 // console to see the diff output printed.
 
 javascript: void (function () {
-    var diff = function (a, b) {
+    const diff = function (a, b) {
         const msg = `List of people in ${a.name} but not in ${b.name}`;
-        var missing = [];
+        const missing = [];
         a.members.map(function (name) {
             if (!b.members.includes(name)) {
                 missing.push(name);
@@ -18,19 +18,19 @@ javascript: void (function () {
         const count = `${missing.length} people`;
         console.log(`${msg}\n${names}\n${count}`);
     };
-    var elements = document.querySelectorAll('#main span[title]'),
-        group_name = elements[0].textContent,
-        names = elements[1].textContent.replace(/ /g, '').split(','),
-        group = { name: group_name, members: names };
+    const elements = document.querySelectorAll('#main span[title]'),
+        name = elements[0].textContent,
+        members = elements[1].textContent.replace(/ /g, '').split(','),
+        group = { name, members };
 
     if (!window.diffGroups) {
         window.diffGroups = [];
         window.diffGroups.push(group);
         console.log('Captured info for first group');
     } else {
-        var group_b = window.diffGroups[0];
-        window.diffGroups = undefined;
-        diff(group, group_b);
-        diff(group_b, group);
+        const otherGroup = window.diffGroups[0];
+        delete window.diffGroups;
+        diff(group, otherGroup);
+        diff(otherGroup, group);
     }
 })();
