@@ -1,3 +1,10 @@
+// Usage:
+// 1. Create a new bookmark in your browser, and add the following code as the
+// URL. (Exclude this comment)
+// 2. Navigate to the first group and click the bookmark.
+// 3. Navigate to the second group and click the bookmark. Open the browser
+// console to see the diff output printed.
+
 javascript: void (function() {
     var diff = function(a, b){
         console.log(`List of people in ${a.name} but not in ${b.name}`);
