@@ -13,10 +13,10 @@ javascript: void (function () {
         const count = `${missing.length} people`;
         console.log(`${msg}\n${names}\n${count}`);
     };
-    const elements = document.querySelectorAll('#main span[title]'),
-        name = elements[0].textContent,
-        members = elements[1].textContent.replace(/ /g, '').split(','),
-        group = { name, members };
+    const elements = document.querySelectorAll('#main span[title]');
+    const name = elements[0].textContent;
+    const members = elements[1].textContent.replace(/ /g, '').split(',');
+    const group = { name, members };
 
     if (!window.diffGroups) {
         window.diffGroups = [];
