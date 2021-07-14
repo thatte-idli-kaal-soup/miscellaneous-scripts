@@ -18,7 +18,7 @@ javascript: void (function () {
     };
     var elements = document.querySelectorAll('#main span[title]'),
         group_name = elements[0].textContent,
-        names = elements[1].textContent.replace(/,/g, '').split(' '),
+        names = elements[1].textContent.replace(/ /g, '').split(','),
         group = { name: group_name, members: names };
 
     if (!window.diffGroups) {
